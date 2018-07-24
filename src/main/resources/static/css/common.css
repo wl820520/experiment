@@ -1,0 +1,184 @@
+﻿/**
+ * @author zhujunyan
+ */
+
+body{position:relative; z-index:0;line-height:20px; color:#333; min-height:100%; min-width: 1200px;}
+a{ font-size:12px;}
+a:hover{ text-decoration:underline;}
+a.op-blue{ color:#0071da; text-decoration:underline;}
+.c91f11{ color:#c91f11;}
+.fb{font-weight: bold;}
+.c-bb1305-14-b{font-size:14px; font-weight:bold; color:#bb1305; display:inline-block; padding:0 5px;}
+a.t-unline{ text-decoration:underline;}
+.b-bb1305{ font-size:14px; color:#bb1305; font-weight:bold;}
+.pl-10{padding-left:10px;}
+.pl-20{padding-left:20px!important;}
+.pr-10{padding-right:10px;}
+.pt-35{padding-top:35px!important;}
+.ml-7{margin-left:7px;}
+.mr-7{margin-right:7px;}
+.ml-10{ margin-left:10px;}
+.ml-20{ margin-left:20px;}
+.ml-10{ margin-left:10px;}
+.ml-30{ margin-left:30px;}
+.mr-8{ margin-right:8px;}
+.pl-5{ padding-left:5px!important;}
+.pl-6{ padding-left:6px;}
+.pt0{padding-top:0!important;}
+.pr-6{padding-right:6px;}
+.pr-5{padding-right:5px!important;}
+.pr-10{padding-right:10px!important;}
+.mt-0{ margin-top:0!important;}
+.mt-10{ margin-top:10px!important;}
+.mt-15{ margin-top:15px!important;}
+.mt-20{ margin-top:20px!important;}
+.mt-30{margin-top:30px!important;}
+.mt-35{margin-top:35px!important;}
+.mt-2{ margin-top:2px!important;}
+.mb-10{margin-bottom:10px;}
+.mb-370{margin-bottom:370px!important;}
+.op-red{ color: #ba1502; text-decoration:underline;}
+.pl-28{ padding-left:28px;}
+a.green{color: #509d21;}
+.pt-0{ padding-top:0px!important;}
+.pl-15{ padding-left:15px;}
+.pl-30{padding-left:30px;}
+.line-h-50{ line-height:50px;}
+a.c0071daUd{ color:#0071da!important; text-decoration:underline!important;}
+.f14{font-size:14px;}
+.pt12{padding-top:12px!important;}
+.pl20{padding-left:20px;}
+.mt7{margin-top:7px;}
+.color-666{ color:#666!important;}
+.color-0{ color:#000!important;}
+.red14{ font-size:14px; font-weight:bold; font-family: Arial; color:#ba1205;}
+.color-999{ color:#999!important;}
+.color-333{ color:#333!important;}
+.color-c00{ color:#c00;}
+.plr-5{padding:0 5px!important;}
+.pb-20{padding-bottom: 20px!important;}
+
+.noboder{border:none!important;}
+/*.tdpr td{position: relative!important;}*/
+.red14_und{ font-size:14px; font-weight:bold; font-family: Arial; color:#ba1205; text-decoration:underline;}
+
+/************************  clear ******************************/
+.clear{clear:both;font-size:0px;width:1px;height:0;line-height:0;visibility: hidden; }
+.clearfix:after{content: ".";display: block;height: 0;clear: both;visibility: hidden;}
+.clearfix {zoom:1}
+/************************ header begin ******************************/
+.header{margin:0 auto; text-align:right; height:54px;width:100%; background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/mode/header-bg.jpg) repeat-x left top; padding-bottom:10px;}
+.header .logo{ display: block; float: left; padding:9px 12px;}
+.header .logo img{height:42px}
+.header p{ padding-top:3px; position:fixed; top:0; right:0px; vertical-align: middle; }
+.header .nav-p{   background-color:#fff; z-index: 88; width:100%; border-bottom:1px solid #DCDCDC; height:35px; line-height:35px; padding-bottom:3px;}
+/************************ nav begin ******************************/
+.nav{ width:1200px; height:41px; margin:0 auto; text-align:right;position: relative; z-index:300;}
+.nav .nav-li li{ margin-left:-4px;}
+.nav .nav-li li h3{background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/navLine.gif) no-repeat right top;}
+.nav-li .nav-h .lb{ display:inline-block; background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/navLine.gif) no-repeat left top; height:39px; padding-right:15px;}
+.nav-li .nav-h .rb{padding:0 17px 0 17px; background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/lit-river-1.gif) no-repeat right center; display:inline-block; height:39px; }
+
+.nav .go-to{ line-height:41px;}
+.nav .nav-li{position: absolute; z-index:999; left:0; top:0px;}
+.nav .nav-li li{ float:left; line-height:39px; text-align:left;  border-top:1px solid #d2d2d2; padding:0 1px; cursor: pointer; padding:0 1px; width:130px;}
+.nav .nav-li li .nav-li-2{ display:none;}
+.nav .nav-li .nav-li-first{width:120px;}
+/*二级导航隐藏*/
+/************************ 二级导航菜单  ******************************/
+.nav .nav-li li.li-click{ border:1px solid #b6b6b6; background-color:#fff; box-shadow: 0px 2px 6px #ececec; padding:0; position: relative; z-index:5;}
+.nav .nav-li li.li-click .nav-li-2{display:block;  padding:0 8px; background:#fff url(http://img2.youxinpai.com/image/chengxp/yxp-op/nav-list-2-bg.gif) repeat-x left bottom; border:1px solid #fff; border-top:1px solid #e5e5e5;}
+.nav .nav-li li.li-click .nav-li-2 li{ margin-left:0; float:none; background-color:transparent;box-shadow:none;  text-align:left; padding:0; line-height:27px; border:none; position: relative;}
+.nav .nav-li li.li-click .nav-li-2 li a{background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/lit-river-2.gif) no-repeat left center; display:block; padding-left:10px;}
+.nav .nav-li li.li-click .nav-li-2 li a:hover{ color:#0071da; text-decoration:underline;background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/lit-river-2-hover.gif) no-repeat left center;} 
+.nav li.li-click h3{background:none;}
+.nav li.li-click .lb{background:none!important;}
+
+/************************ 三级导航菜单  ******************************/
+.nav .nav-li li.li-click .nav-li-3{ position: absolute; left:121px; top:0; border:1px solid #b6b6b6; background-color:#fff; display:none;}
+.nav .nav-li li.li-click .nav-li-3 li {width:100px; }
+.nav .nav-li li.li-click .nav-li-3 li a{background:none; padding-left:23px;}
+.nav .nav-li li.li-click .nav-li-3 li a:hover{background:none; }
+
+
+/* footer*/
+.footer-wrp{ border-top:1px solid #efefef; width:100%; background-color:#fff; position: fixed; bottom:0; z-index: 100;}
+	.footer{border-top:1px solid #fff; text-align:center;}
+	.footer p{ line-height:22px; padding:5px 0; color:#999;}
+	
+/************************ yxp-op-content begin ******************************/
+.op-con{position: relative; z-index:10;margin-left:173px;width:auto;}	
+.op-con .y-loc{ height:40px; overflow:hidden; position: relative;}
+.op-con .y-loc p{ line-height:40px; width: 400px; float: left;}/*  改版修改  2012-08-10   */
+/* 快速查询*/
+.quickSearch{ position: absolute; top:10px; right:0px;}
+.quickSearch .input-text{ line-height:20px; height:20px; width:178px;}
+/* tab 切换 */
+.tab{position:relative; z-index:2;}
+	.tab a{display:inline-block; float:left; background:#fff; border:1px solid #b2b2b2; text-decoration:none; border-bottom:0; margin-right:5px;}
+	.tab a span{ cursor:pointer; display:inline-block; margin:1px; margin-bottom:0; padding:0 15px; height:26px; line-height:26px; background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/bg_navi_result_con_a.gif) repeat-x left top; color:#333;}
+	.tab a.cur{margin-top:-7px;}
+	.tab a.cur span{position:relative; z-index:3; height:35px; line-height:35px; margin:0; margin-bottom:-1px; background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/bg_navi_result_con.jpg) repeat 0 0;font-weight:bold; }
+/***********select 的两种宽度  ***********/
+.w106{ width:104px;}
+.w86{ width:84px;}
+ /***********select 的两种宽度 ****************/
+.navi-result-con{position: relative;}
+ /***********绝对定位 的ico+文字****************/
+.ico{background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/global/ico.png) no-repeat 0 0;}
+.icoText{ position: absolute; right:10px; top:0; padding-left:22px;line-height:22px; height:22px; background-position:0 3px; z-index:5;}
+.icoText a{ color:#1b6bce; text-decoration:underline; cursor:pointer; display: inline-block;}
+
+/* 翻页  */
+.go-page{text-align:center; margin-top:20px;}
+.go-page a,.go-page-r a{ display:inline-block; border:1px solid #ccc; background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/page-bg.jpg) repeat-x left top; margin-left:8px; padding:1px 10px;}
+.go-page a:hover,.go-page-r a:hover{background-position:left bottom; border:1px solid #f7bc67; text-decoration:none;}
+.go-page a.now,.go-page-r a.now{background-position:left bottom; border:1px solid #f7bc67; text-decoration:none;}
+.go-page a.pageDisable,.go-page-r a.pageDisable{ background-position:left -22px; border:1px solid #ccc; color:#bdbcbc; cursor:default;}
+.go-page-r{text-align:right; margin-top:20px;}
+
+/*  弹出层    */
+.shade { background:#333; height:100%; position:absolute; left:0; top:0; width: 100%; display:block;}
+.ejectw{border:1px solid #b8b8b8; width:306px; background-color:#fff; text-align:center; padding-bottom:20px; z-index: 999; line-height:22px; position: fixed; _position:absolute; display:none; box-shadow:0 0 15px #d3d3d3; }
+.ejectw .ejectwClose{background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/ejectClose.jpg) no-repeat left top; width:17px; height:18px; display:block; position: absolute; right:10px; top:10px;}
+.ejectw .ejectH{ border-bottom:1px solid #b8b8b8; height:38px;}
+.ejectw .ejectH H4{ border:1px solid #fff; line-height:36px; font-size: 14px; font-weight:bold; background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/ejectH.jpg) repeat-x left top; overflow:hidden;}
+.ejectw .ejectp{ line-height:20px; padding:17px 0; font-size:14px;}
+
+.ejectp .ejectTab{ width:100%; table-layout:fixed; font-size:12px;}
+	.ejectTab th,.ejectTab td{ padding-top:16px;}
+	.ejectTab th{ text-align:right; color:#666;}
+	.ejectTab th span{padding-right:2px; display: inline-block;}
+	.ejectTab th em{ color:#c00; padding-right:5px;}
+	.ejectTab td{ text-align:left;}
+	.ejectp p.topP,.ejectp p.bottomP{ color:#333; font-size:12px; padding:0 20px;}
+	.ejectp p.bottomP{ color:#666; padding-top:8px;}
+/* 代理服务管理  2012-08-10  over   */
+
+/* 中间部分 公共层*/
+	/* 查询  */
+	.opSeach{ overflow:hidden; zoom:1; padding-bottom:10px; border:1px solid #ccc; background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/global/seachBg.jpg) repeat-x left top; line-height:22px; }
+	.opSeach ul{padding:0 10px 0 20px; overflow:hidden;}
+	.opSeach ul li{display:inline-block; float: left; padding:10px 20px 0 0; height:24px;width:auto;}
+	.opSeach ul li .tit{}
+	.opSeach ul li select,.opSeach ul li span,.opSeach ul li input,.opSeach ul li div{ vertical-align: middle;}
+	.opSeach ul li select{ width:120px; border:1px solid #ABADB3; height:20px; }
+	.opSeach ul li input[type="text"]{ width:120px; height:20px; padding:0; border:1px solid #ABADB3;}
+	.opSeach ul li input.inputTextTime{ width:70px; height:20px;}
+	.opSeach ul li .input-button,.opSeach ul li .input-button span{ vertical-align: top;}
+	.opSeach .input-button{ position: absolute; bottom:14px; right:10px; }
+
+/*数据分析*/
+.date{ padding-left:5px; background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/dateIco.gif) no-repeat 160px center; color:#333; border:1px solid #abadb3; width:170px; height:18px; line-height:18px;}
+.opSeach .select-button{ position:static;}
+.opSeach table td.opSeachtd span{width:70px;}
+.amplify{background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/global/bigIcon.jpg) no-repeat right center; width:21px; height:20px;}
+.noMessage{margin:204px auto 0; display:block;}
+
+
+/*add by hj*/
+.limited-div{padding:0 5px;height:330px;overflow-y:auto;}
+.limited-div table tr th{background:#f9f9f9;border-bottom:1px solid #ccc;text-align:center;line-height:30px;font-weight:bold;}
+.limited-div table tr td{border:1px solid #ccc;}
+.input-button span a{display:block;padding:0 10px;text-align:center;text-decoration:none;}
+.orange-22 a{display:block;height:22px;line-height:22px;color:#824c20;text-shadow:1px 1px 1px #f9dfb3;}

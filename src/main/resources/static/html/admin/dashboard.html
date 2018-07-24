@@ -1,0 +1,226 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>控制台页面</title>
+<link rel="stylesheet" href="/html/admin/css/style.default.css" type="text/css" />
+    <script src="/html/hotel/js/jquery-2.1.4.min.js"></script>
+<!--[if IE 9]>
+    <link rel="stylesheet" media="screen" href="/html/admin/css/style.ie9.css"/>
+<![endif]-->
+<!--[if IE 8]>
+    <link rel="stylesheet" media="screen" href="/html/admin/css/style.ie8.css"/>
+<![endif]-->
+<![endif]-->
+</head>
+
+<body class="withvernav">
+<div class="bodywrapper">
+    <div class="topheader">
+        <div class="left">
+            <h1 class="logo">酒店.<span>后台管理系统</span></h1>
+            <span class="slogan">后台管理系统</span>
+            
+            <div class="search">
+            	<form action="" method="post">
+                	<input type="text" name="keyword" id="keyword" value="请输入" />
+                    <button class="submitbutton"></button>
+                </form>
+            </div><!--search-->
+            
+            <br clear="all" />
+            
+        </div><!--left-->
+        
+        <div class="right">
+        	<!--<div class="notification">
+                <a class="count" href="ajax/notifications.html"><span>9</span></a>
+        	</div>-->
+            <div class="userinfo">
+            	<img src="/html/admin/images/thumbs/avatar.png" alt="" />
+                <span>管理员</span>
+            </div><!--userinfo-->
+            
+            <div class="userinfodrop">
+            	<div class="avatar">
+                	<a href=""><img src="/html/admin/images/thumbs/avatarbig.png" alt="" /></a>
+                    <div class="changetheme">
+                    	切换主题: <br />
+                    	<a class="default"></a>
+                        <a class="blueline"></a>
+                        <a class="greenline"></a>
+                        <a class="contrast"></a>
+                        <a class="custombg"></a>
+                    </div>
+                </div><!--avatar-->
+                <div class="userdata">
+                	<h4>Juan</h4>
+                    <span class="email">youremail@yourdomain.com</span>
+                    <ul>
+                    	<li><a href="editprofile.html">编辑资料</a></li>
+                        <li><a href="accountsettings.html">账号设置</a></li>
+                        <li><a href="help.html">帮助</a></li>
+                        <li><a href="index.html">退出</a></li>
+                    </ul>
+                </div><!--userdata-->
+            </div><!--userinfodrop-->
+        </div><!--right-->
+    </div><!--topheader-->
+    
+    
+    <div class="header">
+
+        <ul class="headermenu">
+            <li class="current"><a href="/admin/dashboard"><span class="icon icon-flatscreen"></span>首页</a></li>
+            <li><a href="/admin/hotel"><span class="icon icon-pencil"></span>酒店管理</a></li>
+            <li><a href="/admin/user"><span class="icon icon-message"></span>会员管理</a></li>
+            <li><a href="/admin/order"><span class="icon icon-message"></span>订单管理</a></li>
+            <li><a href="/admin/report"><span class="icon icon-chart"></span>统计报表</a></li>
+        </ul>
+        
+       <div class="headerwidget">
+        	<div class="earnings">
+            	<div class="one_half">
+                	<h4>入住人数</h4>
+                    <h2 id="usernum"></h2>
+                </div><!--one_half-->
+                <div class="one_half last alignright">
+                	<h4>入住率</h4>
+                    <h2 id="userrat"></h2>
+                </div><!--one_half last-->
+            </div><!--earnings-->
+        </div><!--headerwidget-->
+        
+    </div><!--header-->
+
+    <div class="vernav2 iconmenu">
+        <ul>
+            <li><a href="/admin/hotel" class="gallery">酒店管理</a></li>
+            <li><a href="/admin/user" class="elements">会员管理</a></li>
+            <li><a href="/admin/order" class="calendar">订单管理</a></li>
+            <li><a href="/admin/report" class="widgets">统计信息</a></li>
+        </ul>
+        <a class="togglemenu"></a>
+        <br /><br />
+    </div><!--leftmenu-->
+        
+    <div class="centercontent">
+    
+        <div class="pageheader">
+            <h1 class="pagetitle">控制台</h1>
+            <span class="pagedesc">页面的描述内容</span>
+            
+            <ul class="hornav">
+                <li class="current"><a href="#updates">最新更新</a></li>
+            </ul>
+        </div><!--pageheader-->
+        
+        <div id="contentwrapper" class="contentwrapper">
+        
+        	<div id="updates" class="subcontent">
+                    <div class="notibar announcement">
+                        <a class="close"></a>
+                        <h3>最新消息</h3>
+                        <p id="news"></p>
+                    </div><!-- notification announcement -->
+                    
+                    <div class="two_third dashboard_left">
+                    
+                    	<ul class="shortcuts">
+                        	<li><a  href="/admin/hotel" class="settings"><span>酒店管理</span></a></li>
+                            <li><a href="/admin/user" class="users"><span>会员管理</span></a></li>
+                            <li><a href="/admin/order" class="gallery"><span>订单管理</span></a></li>
+                            <li><a href="/admin/report" class="events"><span>统计报表</span></a></li>
+                        </ul>
+                        
+                        <br clear="all" />
+                    
+                        <div class="contenttitle2 nomargintop">
+                            <h3>入住率情况</h3>
+                        </div><!--contenttitle-->
+
+                        <br clear="all" />
+                        
+                        <table cellpadding="0" cellspacing="0" border="0" class="stdtable overviewtable">
+                            <colgroup>
+                                <col class="con0" width="20%" />
+                                <col class="con1" width="20%" />
+                                <col class="con0" width="20%" />
+                                <col class="con1" width="20%" />
+                                <col class="con0" width="20%" />
+                            </colgroup>
+                            <thead>
+                                <tr>
+                                    <th class="head0">入住房间</th>
+                                    <th class="head1">总房间数</th>
+                                    <th class="head0">酒店数</th>
+                                    <th class="head1">人数</th>
+                                    <th class="head0">入住率</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="center" id="d1">                        			</td>
+                                    <td id="d2"></td>
+                                    <td id="d3"></td>
+                                    <td id="d4"></td>
+                                    <td>
+                                        <div class="progress progress150">
+                                            <div class="bar"><div id="rat" style="width: 60%;" class="value bluebar"></div></div>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+
+                        
+                    </div><!--two_third dashboard_left -->
+
+            </div><!-- #updates -->
+
+        </div><!--contentwrapper-->
+        
+        <br clear="all" />
+        
+	</div><!-- centercontent -->
+    
+    
+</div><!--bodywrapper-->
+<script type="text/javascript">
+    $.ajax({url:"/order/getNewOrder",type: "POST",success:function (data) {
+            if(data&&data.code==1){
+                console.log(data)
+                $("#news").text("用户："+data.data.username+"预定了："+data.data.ordername+" 入住时间："+data.data.starttime+" 退房时间："+data.data.endtime);
+            }else{
+                alert("添加失败："+data.msg)
+            }
+        }})
+    $.ajax({url:"/hotel/getCount",success:function(result){
+            if(result&&result.data&&result.data.length>0) {
+                result.data.forEach(function (item,index) {
+                    switch (index){
+                        case 0:
+                            $("#d1").text(item)
+                            break;
+                        case 1:
+                            $("#d2").text(item)
+                            break;
+                        case 2:
+                            $("#d3").text(item)
+                            break;
+                        case 3:
+                            $("#d4").text(item)
+                            $("#usernum").text(item)
+                            break;
+                    }
+                })
+                var rat=parseFloat($("#d1").text()/$("#d2").text()).toFixed(2)*100;
+                $("#rat").css("width",rat+"%")
+                $("#userrat").text(rat+"%")
+            }
+        }});
+</script>
+</body>
+</html>

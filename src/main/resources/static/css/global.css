@@ -1,0 +1,159 @@
+/* 公共样式@author zhuzhu */
+button::-moz-focus-inner, input[type="reset"]::-moz-focus-inner, input[type="button"]::-moz-focus-inner, input[type="submit"]::-moz-focus-inner, input[type="file"] > input[type="button"]::-moz-focus-inner {border:none ;padding:0;}
+
+
+/* *************button 是a 标签的情况********************* */
+.bgButA{background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/global/bg-button.jpg) repeat-x left top; padding:0 20px; font-size:12px; cursor: pointer; display:inline-block; text-align:center; box-shadow:1px 1px 1px #e9e9e9;}
+.bgButA:hover{text-decoration:none;}
+	.grayButA-32,.orangeButA-32,.blueButA-32,.noActiveButA-32{ line-height:30px; font-size: 14px;}
+	.grayButA-22,.orangeButA-22,.blueButA-22,.noActiveButA-22{ line-height:20px;}
+	.grayButA-25,.orangeButA-25,.blueButA-25,.noActiveButA-25{ line-height:23px;}
+	
+	.grayButA-32,.grayButA-22,.grayButA-25{border:1px solid #a7a7a7; color:#444;text-shadow:1px 1px 1px #e9e9e9;}
+	.grayButA-32:hover,.grayButA-22:hover,.grayButA-25:hover{border:1px solid #8f8f8f;}
+	.grayButA-32:active,.grayButA-22:active,.grayButA-25:active{border:1px solid #8f8f8f;}
+	
+	.orangeButA-32,.orangeButA-22,.orangeButA-25{border:1px solid #d78f19; color:#824c20;text-shadow:1px 1px 1px #f5d9a8;}
+	.orangeButA-32:hover,.orangeButA-22:hover,.orangeButA-25:hover{border:1px solid #b97200;}
+	.orangeButA-32:active,.orangeButA-22:active,.orangeButA-25:active{border:1px solid #cd7a0f;}
+	
+	.blueButA-32,.blueButA-22,.blueButA-25{border:1px solid #2580e7; color:#fff;text-shadow:1px 1px 1px #2e527c;}
+	.blueButA-32:hover,.blueButA-22:hover,.blueButA-25:hover{border:1px solid #0153af;}
+	.blueButA-32:active,.blueButA-22:active,.blueButA-25:active{border:1px solid #106cd2;}
+	
+	/* button 灰色 高30px */
+	.grayButA-32{background-position:0 0; }
+	.grayButA-32:hover{background-position:0 -30px; }
+	.grayButA-32:active{background-position:0 -60px; }
+	/* button 橙色 高30px */
+	.orangeButA-32{background-position:0 -90px; }
+	.orangeButA-32:hover{background-position:0 -120px; }
+	.orangeButA-32:active{background-position:0 -150px; }
+	/* button 蓝色 高30px */
+	.blueButA-32{background-position:0 -180px; }
+	.blueButA-32:hover{background-position:0 -210px; }
+	.blueButA-32:active{background-position:0 -240px; }
+	
+	/* button 灰色 高20px */
+	.grayButA-22{background-position:0 -270px;}
+	.grayButA-22:hover{background-position:0 -290px;}
+	.grayButA-22:active{background-position:0 -310px;}
+	/* button 蓝色 高20px */
+	.blueButA-22{background-position:0 -330px;}
+	.blueButA-22:hover{background-position:0 -350px;}
+	.blueBut-22:active{background-position:0 -370px;}
+	/* button 橙色 高20px */
+	.orangeButA-22{background-position:0 -390px;}
+	.orangeButA-22:hover{background-position:0 -410px;}
+	.orangeButA-22:active{background-position:0 -430px;}
+	 
+	/* button 灰色 高23px */
+	.grayButA-25{background-position:0 -450px;}
+	.grayButA-25:hover{background-position:0 -473px;}
+	.grayButA-25:active{background-position:0 -496px;}
+	/* button 蓝色 高23px */
+	.blueButA-25{background-position:0 -519px;}
+	.blueButA-25:hover{background-position:0 -542px;}
+	.blueButA-25:active{background-position:0 -565px;}
+	/* button 橙色 高23px */
+	.orangeButA-25{background-position:0 -588px;}
+	.orangeButA-25:hover{background-position:0 -611px;}
+	.orangeButA-25:active{background-position:0 -634px;}
+	
+	/* button 不能点击的状态 */
+	.noActiveButA-32,.noActiveButA-22,.noActiveButA-25{border:1px solid #d5d5d5; color: #bbb; cursor: default; box-shadow:none;}
+	.noActiveButA-32{background-position:0 -657px;}
+	.noActiveButA-25{background-position:0 -687px;}
+	.noActiveButA-22{background-position:0 -710px;}	
+	
+/**************button 是input 标签 type=button的情况**********************/	
+.input-button{ background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/global/bgButInp.jpg) no-repeat left top; display:inline-block; *+display:inline; padding-left:1px; text-align:center; border:0; cursor: pointer;}
+.input-button span{border:0; padding-right:1px; margin:0; display:inline-block; *+display:inline; background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/global/bgButInp.jpg) no-repeat right top; }
+.input-button span input{border:0; background:none; cursor:pointer;padding:0 19px; *+padding-right:12px; }
+
+	.gray-32,.orange-32,.blue-32,.gray-32 span,.orange-32 span,.blue-32 span,.noActive-32,.noActive-32 span,.noActive-32 span input,.gray-32 span input,.orange-32 span input,.blue-32 span input{ overflow:visible; line-height:32px; font-size: 14px; height:32px;}
+	.gray-22,.orange-22,.blue-22,.noActive-22,.gray-22 span,.orange-22 span,.blue-22 span,.noActive-22 span,.gray-22 span,.gray-22 span input,.orange-22 span input,.blue-22 span input,.noActive-22 span input{overflow:visible;line-height:22px; height:22px;}
+	.gray-25,.orange-25,.blue-25,.noActive-25,.gray-25 span,.orange-25 span,.blue-25 span,.noActive-25 span,.gray-25 span,.gray-25 span input,.orange-25 span input,.blue-25 span input,.noActive-25 span input{overflow:visible;line-height:25px; height:25px;}
+		
+	.gray-32 input,.gray-22 input,.gray-25 input{ color:#444;text-shadow:1px 1px 1px #e9e9e9;}
+	.orange-32 input,.orange-22 input,.orange-25 input{color:#824c20;text-shadow:1px 1px 1px #f9dfb3;}
+	.blue-32 input,.blue-22 input,.blue-25 input{color:#fff; text-shadow:1px 1px 1px #2e527c;}
+	
+	/* button 灰色 高32px */
+	.gray-32{background-position:0 0; }
+	.gray-32:hover{background-position:0 -32px; }	
+	.gray-32 span{background-position:right 0; }
+	.gray-32:hover span{background-position:right -32px; }	
+	/* button 蓝色 高32px */
+	.blue-32{background-position:0 -96px; }
+	.blue-32:hover{background-position:0 -128px; }
+	.blue-32 span{background-position:right -96px; }
+	.blue-32:hover span{background-position:right -128px; }	
+	/* button 橙色 高32px */
+	.orange-32{background-position:0 -192px; }
+	.orange-32:hover{background-position:0 -224px; }
+	.orange-32 span{background-position:right -192px; }
+	.orange-32:hover span{background-position:right -224px; }
+	
+	/* button 灰色 高25px */
+	.gray-25{background-position:0 -288px;}
+	.gray-25:hover{background-position:0 -313px;}
+	.gray-25 span{background-position:right -288px;}
+	.gray-25:hover span{background-position:right -313px;}
+	/* button 蓝色 高25px */
+	.blue-25{background-position:0 -363px;}
+	.blue-25:hover{background-position:0 -388px;}
+	.blue-25 span{background-position:right -363px;}
+	.blue-25:hover span{background-position:right -388px;}		
+	/* button 橙色 高25px */
+	.orange-25{background-position:0 -438px;}
+	.orange-25:hover{background-position:0 -463px;}
+	.orange-25 span{background-position:right -438px;}
+	.orange-25:hover span{background-position:right -463px;}	 
+						
+	/* button 灰色 高22px */
+	.gray-22{background-position:0 -513px;}
+	.gray-22:hover{background-position:0 -535px;}
+	.gray-22 span{background-position:right -513px;}
+	.gray-22:hover span{background-position:right -535px;}
+	/* button 蓝色 高22px */
+	.blue-22{background-position:0 -579px;}
+	.blue-22:hover{background-position:0 -601px;}
+	.blue-22 span{background-position:right -579px;}
+	.blue-22:hover span{background-position:right -601px;} 	
+	/* button 橙色 高22px */
+	.orange-22{background-position:0 -645px;}
+	.orange-22:hover{background-position:0 -667px;}
+	.orange-22 span{background-position:right -645px;}
+	.orange-22:hover span{background-position:right -667px;}
+	
+	/* button 不能点击的状态 */
+	.noActive-32,.noActive-22,.noActive-25,.noActive-32 span,.noActive-22 span,.noActive-25 span,.noActive-32 span input,.noActive-22 span input,.noActive-25 span input{color: #bbb; cursor: default; box-shadow:none;}
+	.noActive-32{background-position:0 -711px;}
+	.noActive-32 span{background-position:right -711px;}
+	.noActive-25{background-position:0 -743px;}
+	.noActive-25 span{background-position:right -743px;}
+	.noActive-22{background-position:0 -768px;}
+	.noActive-22 span{background-position:right -768px;}
+/*input type=text */
+.input-text,.text-area{background:#fff url(http://img2.youxinpai.com/image/chengxp/yxp-op/global/bgForm.jpg) repeat-x left top;border:1px solid #abadb3;line-height:22px; padding:0 10px;}
+.input-text{ height:22px; width:198px;}
+
+.input-textWid400{width:400px;}
+.input-text:hover,.text-area:hover{border:1px solid #459aff;}
+.interError{border:1px solid #f00;}
+.text-area{padding:8px 10px;}
+.input-text-disabled{border:1px solid #d5d6d9;}
+.input-text-disabled:hover{border:1px solid #d5d6d9;}
+
+/* 自定义下拉菜单 */
+.inpSelect,.inpSelect1{ width:218px;background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/global/bgForm.jpg) repeat-x left top;border:1px solid #abadb3;line-height:22px; height:22px; position: relative;  display: inline-block; *+display:inline; zoom:1;}
+.inpSelect .selectTop,.inpSelect1 .selectTop{display:block; padding:0 18px 0 10px; line-height:22px; height:22px;background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/global/selectBg.jpg) no-repeat right top;}
+	
+.inpSelect ul,.inpSelect1 ul {position:absolute;left:0;top:22px; border:solid 1px #abadb3; width:100%;background-color:#fff; margin-left:-1px;}
+.inpSelect ul li,.inpSelect1 ul li {margin:0;}
+.inpSelect ul li a,.inpSelect1 ul li a {display:block; height:24px; line-height:24px; color:#000; text-decoration:none; padding-left:10px;}
+.inpSelect ul li a:hover, .defineSelect ul li a:active,.inpSelect1 ul li a:hover {background-color:#f7f7f7;}
+
+
+	

@@ -1,0 +1,36 @@
+﻿/**
+ * @author zhujunyan
+ */
+html,body{height:100%;}
+a.c-007ed7{ color:#007ed7;}
+
+.log-pl10{padding-left:10px;}
+
+.wrapper{ min-height:100%; position: relative;}
+.footer-wrp {bottom: 0; position: absolute; width:100%;}
+.log-con{ padding:100px 0 120px; width:400px; margin:0 auto;}
+
+.log-con .error-info{border:1px solid #cc0000; background-color:#ffebe8; padding:7px 0; text-align:center; color:#000; line-height:20px;}
+
+.log-con .log-div-wrap{border:1px solid #d1d1d1; box-shadow:0 0 10px 10px #fbfbfb; margin-top:14px;}
+.log-con .log-div-wrap .log-div{ border:1px solid #fff; border-left:none; background-color:#fbfbfb; padding:37px 20px 20px;}
+
+		.log-div h2{ background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/log-h.jpg) left top no-repeat; width:167px; height:18px; display:block; margin:0 auto;}
+		.log-div .log-ul{width:280px; margin:0 auto; color:#666;}
+		.log-div .log-ul li{ height:28px; margin-top:10px; position: relative;}
+		.log-div .log-ul li .name-ico,.log-div .log-ul li .password-ico{ width:16px; height:18px; display: block; position: absolute; right:12px; top:5px;background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/log-ico.jpg) left top no-repeat;}
+		.log-div .log-ul li .password-ico{ background-position:right 0;}
+		.log-div .log-ul li label{ width:50px; padding-left:5px; text-align:right; display:inline-block;}
+		.log-div .log-ul li .input-text,.log-div .log-ul li .input-password{width:210px; padding:4px 0 4px 9px; height:20px;background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/log-input.jpg) left top no-repeat; border:none; color:#333; line-height:20px;}
+		.log-div .log-ul li .input-focus{background-position:left -28px;}
+		.log-div .log-ul li .input-error{background-position:left -56px;}
+		
+		.log-div .log-ul li .input-password{ width:66px; height:20px; background-position:right 0; padding:2px 0 3px 9px;}
+		
+		.log-div .inpur-submit{ height:29px; padding-top:20px;}
+		.log-div .inpur-submit .submit{width:96px; height:29px; display:block; border:none; background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/log-but.jpg) left top no-repeat; margin:0 auto; }
+		.log-div .inpur-submit .submit:hover{ background-position:left -29px;}
+		.log-div .inpur-submit .submit:active{background-position:left -58px;}
+		
+		.log-div form{ padding-top:18px;}
+		

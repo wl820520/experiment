@@ -1,0 +1,182 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>统计报表页面</title>
+    <link rel="stylesheet" href="/html/admin/css/style.default.css" type="text/css" />
+    <script type="text/javascript" src="/html/admin/js/plugins/jquery-1.7.min.js"></script>
+    <script type="text/javascript" src="/html/admin/js/plugins/jquery-ui-1.8.16.custom.min.js"></script>
+    <script type="text/javascript" src="/html/admin/js/plugins/jquery.cookie.js"></script>
+    <script type="text/javascript" src="/html/admin/js/plugins/jquery.flot.min.js"></script>
+    <script type="text/javascript" src="/html/admin/js/plugins/jquery.flot.pie.js"></script>
+    <script type="text/javascript" src="/html/admin/js/plugins/jquery.flot.resize.min.js"></script>
+    <script type="text/javascript" src="/html/admin/js/custom/general.js"></script>
+    <script type="text/javascript" src="/html/admin/js/custom/charts.js"></script>
+    <!--[if lte IE 8]><script language="javascript" type="text/javascript" src="/html/admin/js/plugins/excanvas.min.js"></script><![endif]-->
+    <!--[if IE 9]>
+    <link rel="stylesheet" media="screen" href="/html/admin/css/style.ie9.css"/>
+    <![endif]-->
+    <!--[if IE 8]>
+    <link rel="stylesheet" media="screen" href="/html/admin/css/style.ie8.css"/>
+    <![endif]-->
+    <!--[if lt IE 9]>
+    <script src="/html/admin/js/plugins/css3-mediaqueries.js"></script>
+    <![endif]-->
+</head>
+
+<body>
+<div class="bodywrapper">
+    <div class="topheader">
+        <div class="left">
+            <h1 class="logo">酒店.<span>后台管理系统</span></h1>
+            <span class="slogan">后台管理系统</span>
+            <br clear="all" />
+
+        </div><!--left-->
+
+        <div class="right">
+            <!--<div class="notification">
+                <a class="count" href="ajax/notifications.html"><span>9</span></a>
+            </div>-->
+            <div class="userinfo">
+                <img src="/html/admin/images/thumbs/avatar.png" alt="" />
+                <span>管理员</span>
+            </div><!--userinfo-->
+
+            <div class="userinfodrop">
+                <div class="avatar">
+                    <a href=""><img src="/html/admin/images/thumbs/avatarbig.png" alt="" /></a>
+                    <div class="changetheme">
+                        切换主题: <br />
+                        <a class="default"></a>
+                        <a class="blueline"></a>
+                        <a class="greenline"></a>
+                        <a class="contrast"></a>
+                        <a class="custombg"></a>
+                    </div>
+                </div><!--avatar-->
+                <div class="userdata">
+                    <h4>Juan</h4>
+                    <span class="email">youremail@yourdomain.com</span>
+                    <ul>
+                        <li><a href="editprofile.html">编辑资料</a></li>
+                        <li><a href="accountsettings.html">账号设置</a></li>
+                        <li><a href="help.html">帮助</a></li>
+                        <li><a href="index.html">退出</a></li>
+                    </ul>
+                </div><!--userdata-->
+            </div><!--userinfodrop-->
+        </div><!--right-->
+    </div><!--topheader-->
+
+
+    <div class="header">
+        <ul class="headermenu">
+            <li><a href="/admin/dashboard"><span class="icon icon-flatscreen"></span>首页</a></li>
+            <li><a href="/admin/hotel"><span class="icon icon-pencil"></span>酒店管理</a></li>
+            <li><a href="/admin/user"><span class="icon icon-message"></span>会员管理</a></li>
+            <li><a href="/admin/order"><span class="icon icon-message"></span>订单管理</a></li>
+            <li class="current"><a href="/admin/report"><span class="icon icon-chart"></span>统计报表</a></li>
+        </ul>
+
+        <div class="headerwidget">
+            <div class="earnings">
+                <div class="one_half">
+                    <h4>入住人数</h4>
+                    <h2 id="usernum">10223</h2>
+                </div><!--one_half-->
+                <div class="one_half last alignright">
+                    <h4>入住率</h4>
+                    <h2 id="userrat">53%</h2>
+                </div><!--one_half last-->
+            </div><!--earnings-->
+        </div><!--headerwidget-->
+
+    </div><!--header-->
+
+    <div class="pageheader">
+    	<h1 class="pagetitle">统计报表</h1>
+        <span class="pagedesc">.</span>
+
+        <ul class="hornav">
+        	<li class="current"><a href="#charts">图表</a></li>
+        </ul>
+    </div><!--pageheader-->
+    
+    <div class="contentwrapper">
+    
+    	<div id="charts" class="subcontent">
+    	
+            <div class="one_half">
+                <div class="contenttitle2">
+                    <h3>入住人数统计</h3>
+                </div><!--contenttitle-->
+                <br />
+                <div id="chartplace" style="height:300px;"></div>
+            </div><!--one_half-->
+            
+            <div class="one_half last">            
+                <div class="contenttitle2">
+                    <h3>入住率</h3>
+                </div><!--contenttitle-->
+                <br />
+                <div id="bargraph" style="height:300px;"></div>
+            </div><!--one_half last-->
+            
+            <br clear="all" /><br />
+            
+            <div class="one_half">
+                <div class="contenttitle2">
+                    <h3>实时入住数</h3>
+                </div><!--contenttitle-->
+                <br />
+                <div id="realtime" style="height:300px;"></div>
+                <br />
+            </div><!--one_half-->
+            
+            <div class="one_half last">
+                <div class="contenttitle2">
+                    <h3>房间入住情况统计</h3>
+                </div><!--contenttitle-->
+                <br />
+                <div id="piechart" style="height: 300px;"></div>
+            </div><!--one_half last-->
+        
+        <br clear="all" />
+        
+        </div><!--#charts-->
+        
+        <div id="statistics" class="subcontent">
+        	&nbsp;
+        </div><!--#statistics-->
+        
+    </div><!--contentwrapper-->
+    
+    
+</div><!--bodywrapper-->
+<script type="text/javascript">
+    $.ajax({url:"/hotel/getCount",success:function(result){
+            var num1=0,num2=0;
+            if(result&&result.data&&result.data.length>0) {
+                result.data.forEach(function (item,index) {
+                    switch (index){
+                        case 0:
+                            num2=item;
+                            break;
+                        case 1:
+                            num1=item;
+                            break;
+                        case 3:
+                            $("#usernum").text(item)
+                            break;
+                    }
+                })
+                console.log(num1+"   "+num2)
+                var rat=parseFloat(num2/num1).toFixed(2)*100;
+                $("#userrat").text(rat+"%")
+            }
+        }});
+</script>
+</body>
+</html>

@@ -1,0 +1,62 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>登录页面</title>
+<link rel="stylesheet" href="/html/admin/css/style.default.css" type="text/css" />
+    <script src="/html/hotel/js/jquery-2.1.4.min.js"></script>
+<!--[if IE 9]>
+    <link rel="stylesheet" media="screen" href="/html/admin/css/style.ie9.css"/>
+<![endif]-->
+<!--[if IE 8]>
+    <link rel="stylesheet" media="screen" href="/html/admin/css/style.ie8.css"/>
+<![endif]-->
+<!--[if lt IE 9]>
+	<script src="/html/admin/js/plugins/css3-mediaqueries.js"></script>
+<![endif]-->
+</head>
+
+<body class="loginpage">
+	<div class="loginbox">
+    	<div class="loginboxinner">
+        	
+            <div class="logo">
+            	<h1 class="logo">酒店.<span>后台管理系统</span></h1>
+				<span class="slogan">仅限管理员账号登录</span>
+            </div><!--logo-->
+            <div class="nousername">
+				<div class="loginmsg">密码不正确.</div>
+            </div><!--nousername-->
+                <div class="username">
+                	<div class="usernameinner">
+                    	<input type="text" name="username" id="username" />
+                    </div>
+                </div>
+                
+                <div class="password">
+                	<div class="passwordinner">
+                    	<input type="password" name="password" id="password" />
+                    </div>
+                </div>
+                
+                <button id="login">登录</button>
+
+        </div><!--loginboxinner-->
+    </div><!--loginbox-->
+
+<script type="application/javascript">
+    $(function () {
+        $("#login").click(function () {
+            $.ajax({url:"/user/login",data:{loginname:$("#username").val(),loginpwd:$("#password").val()},success:function(result){
+                    if(result&&result.code==1) {
+                        location.href="/admin/dashboard";
+                        }else{
+                        $(".nousername").show();
+                    }
+                }});
+        })
+    })
+</script>
+</body>
+</html>

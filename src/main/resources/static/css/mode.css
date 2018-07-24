@@ -1,0 +1,65 @@
+/*mode-nav start*/
+.mode-nav{position:relative;z-index:1;}
+	.main-nav{position:absolute;z-index:2;left:302px;top:-30px;background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/navLine.gif) no-repeat left top;width:810px;}
+	.main-nav li{float:left; font-size:13px; font-weight:bold; color:#5d5d5d; background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/navLine.gif) no-repeat right top;line-height:30px;height:30px;padding:0 20px;cursor:pointer;}
+	.main-nav li.current{background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/mode/nav_bg.jpg) repeat-x 0 0;border:1px solid #d0d0d0;border-bottom:none; margin-left:-2px;}
+	.main-nav .op-more{color:#0071da;cursor:pointer; font-size:13px; color:#5d5d5d; font-weight:bold; line-height:31px; margin-left:10px;}
+.mode-nav .sub-nav{overflow:hidden; background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/mode/op-bg_01.gif) repeat 0 0; margin-bottom:5px; margin-top:-1px;}
+	.sub-nav ul{margin-left:173px;}	
+	.sub-nav ul li{float:left;}
+	.sub-nav ul li.last{background-image:none;}
+	.sub-nav ul li.cur{background-image:none;background-color:#e70;color:#fff;text-decoration:none;}	
+	.sub-nav ul li a{padding:0 12px;color:#1b6bce;line-height:41px; text-decoration:underline;}
+	.sub-nav ul li.cur a{color:#fff;text-decoration:none;}
+/*mode-nav end*/
+.op-middle{position: relative; min-height:800px; width:100%;}
+	/*tree menu start*/
+	.tree-menu{background-color:#f7f7f7;border:1px solid #cbcbcb;position:absolute;left:0;top:0;width:158px; border-bottom:none; border-top:none;}
+		.manage-info{margin:8px 20px 20px;color:#333;}
+		.manage-info dd{line-height:26px;}
+		.manage-info dd a{color:#0071da;}
+			.op-quit{margin-left:38px;cursor:pointer;}
+	.tree-menu ul li{border-bottom:1px solid #d8d8d8;}
+	.tree-menu ul li a{display:block; padding-left:15px; height:32px; line-height:32px; background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/mode/btn_bg.png) repeat-x 0 0; cursor:pointer;text-decoration:none;}
+	.tree-menu ul li a span{color:#5d5d5d; display:block; width:138px; background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/mode/mode_ico.png) no-repeat right 0;_background:url(../images/mode_ico.gif) no-repeat right 0; font-weight: bold; font-size:13px;}
+	.tree-menu ul li a span.arrow-dropMenu, .left-container dl dd ul li a.cur span{background-position:right -89px;}
+	.tree-menu ul li a:hover, .left-container dl dd ul li a.cur{background-position:0 -32px;}
+	.tree-menu ul li .dropMenu{border-top:1px solid #cfcfcf;}
+	.tree-menu ul li .dropMenu ul li{border:0; border-bottom:1px solid #f1f1f1;}
+	.tree-menu ul li .dropMenu ul li a{display:block; _padding:0; height:25px; line-height:25px; background:none; background-color:#fbfbfb;}
+	.tree-menu ul li .dropMenu ul li a:hover{background-color:#ffa245;}
+	.tree-menu ul li .dropMenu ul li a:hover span{ color:#fff;} 
+	.tree-menu ul li .dropMenu ul li a.cur{background-color:#d2d2d2;}
+	 .tree-menu ul li .dropMenu ul li a.cur{background-color:#eb7600; color:#fff;}
+	.tree-menu ul li .dropMenu ul li a.cur span{background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/mode/bg_point_white.gif) no-repeat left center;color:#fff;}
+	.tree-menu ul li .dropMenu ul li a span{font-weight:normal; font-size:12px; background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/mode/bg_point_gray.gif) no-repeat left center; margin-left:10px; padding-left:10px; _margin-left:20px; _width:auto;color:#666;}
+	.noBdb{border-bottom:0!important;}	
+	/*.bdt{border-top:1px solid #d8d8d8;}		
+	/*tree menu end*/
+	/*fold start*/
+	.fold,.packUp{background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/mode/fold.jpg) no-repeat 0 0;position:absolute;top:170px;left:160px;height:56px;width:13px; cursor: pointer;}
+	.packUp{background-position:-13px 0;}
+	/*fold end*/	
+	/*inforAdv begin*/
+	.inforAdv{ padding:37px 0 0 270px;}
+	.inforAdv div{text-align:left;}
+	.inforAdv div span{font-weight:bold;}
+	.inforAdv div a{padding:0 10px 0 0;}
+	.inforAdv div a em{ color:#c00; font-weight:bold; padding:0 2px;}
+	/*inforAdv over*/
+	/*body bg 模拟左侧导航条背景*/
+	.body_bg{background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/mode/body_bg.gif) repeat-y left top;}
+	.body_bg1{background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/mode/body_bg1.gif) repeat-y left top;}
+	.gotop{width:32px; height:35px; background:url(http://img2.youxinpai.com/image/chengxp/yxp-op/mode/top.jpg) no-repeat left top; display: inline-block; vertical-align: middle; }
+	/*quickMenu begin*/
+	.quickMenu{width:900px;}
+		.quickMenu-con{padding:10px 0 0 10px;width:890px;}
+		.quickMenu-con dl{border-bottom:1px dotted #b8b8b8;padding:3px 0;overflow:hidden;}
+		.quickMenu-con dl dt{float:left;width:80px;line-height:22px;text-align:right;color:#d5d5d5;font-weight:bold;padding:3px 6px 0 0;}
+		.quickMenu-con dl dd{float:left;width:780px;text-align:left;padding:3px 0 0;overflow:hidden;}
+		.quickMenu-con dl dd em{border-left:1px solid #ccc;float:left;height:14px;line-height:14px;margin:4px 0;padding:0 8px;white-space:nowrap;}
+		.quickMenu-con dl dd em a{color:#1b6bce;text-decoration:underline;}
+	/*quickMenu over*/
+	
+	
+	
