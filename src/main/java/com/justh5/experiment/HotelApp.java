@@ -1,5 +1,6 @@
 package com.justh5.experiment;
 
+import com.justh5.experiment.socketservice.SocketServer;
 import org.mybatis.spring.annotation.MapperScan;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
@@ -11,5 +12,7 @@ import org.springframework.cloud.client.discovery.EnableDiscoveryClient;
 public class HotelApp {
     public static void main(String[] args){
         SpringApplication.run(HotelApp.class, args);
+        SocketServer server = new SocketServer();
+        server.startSocketServer(502);
     }
 }
