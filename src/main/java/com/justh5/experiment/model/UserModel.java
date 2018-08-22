@@ -17,6 +17,24 @@ public class UserModel implements Serializable{
     private String loginname;
     private String username;
     private String userphone;
+    private String usercode;
+    private String facepic;
+
+    public String getUsercode() {
+        return usercode;
+    }
+
+    public void setUsercode(String usercode) {
+        this.usercode = usercode;
+    }
+
+    public String getFacepic() {
+        return facepic;
+    }
+
+    public void setFacepic(String facepic) {
+        this.facepic = facepic;
+    }
 
     public String getEmail() {
         return email;

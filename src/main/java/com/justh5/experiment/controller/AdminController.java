@@ -1,12 +1,14 @@
 package com.justh5.experiment.controller;
 
 import com.justh5.experiment.domain.SysResult;
-import com.justh5.experiment.model.FeedBackModel;
+import com.justh5.experiment.model.UserModel;
 import com.justh5.experiment.service.AdminService;
+import org.apache.catalina.User;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.ModelAndView;
 
@@ -17,7 +19,7 @@ import java.sql.SQLException;
 @RestController
 @RequestMapping("admin")
 public class AdminController {
-    private static Logger logger = LogManager.getLogger(HotelController.class);
+    private static Logger logger = LogManager.getLogger(AdminController.class);
     @Autowired
     private AdminService adminService;
     @CrossOrigin
@@ -25,15 +27,26 @@ public class AdminController {
     public Object jumpToView(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
         return new ModelAndView("admin/index");
     }
+    @RequestMapping(value = "/login")
+    public SysResult login(String username, String password) {
+        if(StringUtils.isEmpty(username)||StringUtils.isEmpty(password)){
+            return new SysResult(99, "用户名或密码不能为空",null);
+        }
+        UserModel userModel=adminService.getAdminUser();
+        if(userModel!=null&&userModel.getId()>0&&userModel.getLoginname().trim().equals(username.trim())&&userModel.getLoginpwd().trim().equals(password.trim())){
+            return new SysResult(1, "success",null);
+        }
+        return new SysResult(99, "用户名或密码错误",null);
+    }
     @CrossOrigin
-    @RequestMapping("dashboard")
+    @RequestMapping("statis")
     public Object dashboard(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
-        return new ModelAndView("admin/dashboard");
+        return new ModelAndView("admin/statis");
     }
     @CrossOrigin
     @RequestMapping("experiment")
     public Object hotel(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
-        return new ModelAndView("admin/manageblog");
+        return new ModelAndView("admin/experiment");
     }
     @CrossOrigin
     @RequestMapping("user")
@@ -67,20 +80,5 @@ public class AdminController {
     public Object addhotel(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
         String id=request.getParameter("id");
         return new ModelAndView("admin/experiment");
-    }
-    @RequestMapping(value="addfeedback", produces = MediaType.APPLICATION_JSON_VALUE,method={RequestMethod.GET,RequestMethod.POST})
-    @ResponseBody
-    public SysResult addfeedback(HttpServletRequest request, String content, String username, Integer uid, String email) throws SQLException {
-        FeedBackModel feedBackModel=new FeedBackModel();
-        feedBackModel.setContent(content);
-        feedBackModel.setUsername(username);
-        feedBackModel.setUid(uid);
-        feedBackModel.setEmail(email);
-        if(uid>0) {
-            Integer feedback =adminService.addFeedBack(feedBackModel);
-            return new SysResult(1, "success");
-        }else{
-            return new SysResult(99, "fail");
-        }
     }
 }
