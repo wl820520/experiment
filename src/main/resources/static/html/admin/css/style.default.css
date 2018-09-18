@@ -1474,7 +1474,7 @@ a.btn_orange span { background-color: #FB9337; border-left: 0; -moz-box-shadow: 
 a.btn_orange:hover { opacity: 1; color: #fff; border-color: #F0882C; }
 
 a.btn_blue { 
-	background-image: url(../images/icons/sprites.white.png); background-color: #0f91f5; color: #fff; 
+	background-color: #0f91f5; color: #fff;
 	-moz-box-shadow: none; -webkit-box-shadow: none; box-shadow: none; border-color: #0976c9; opacity: 0.9;
 }
 a.btn_blue span { background-color: #0f91f5; border-left: 0; -moz-box-shadow: none; -webkit-box-shadow: none; box-shadow: none; }

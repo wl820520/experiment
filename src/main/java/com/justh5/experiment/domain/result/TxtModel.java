@@ -6,6 +6,15 @@ public class TxtModel {
     private Double minValue;
     private Double maxValue;
     private Double value;
+    private Integer score;
+
+    public Integer getScore() {
+        return score;
+    }
+
+    public void setScore(Integer score) {
+        this.score = score;
+    }
 
     public Double getValue() {
         return value;

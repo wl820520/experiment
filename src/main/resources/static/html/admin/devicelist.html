@@ -4,7 +4,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>实验台管理--实验管理</title>
+<title>实验台管理--实验台设备管理</title>
 <link rel="stylesheet" href="/html/admin/css/style.default.css" type="text/css" />
 <!--<script type="text/javascript" src="js/plugins/jquery-1.7.min.js"></script>-->
 <!--<script type="text/javascript" src="js/plugins/jquery-ui-1.8.16.custom.min.js"></script>-->
@@ -28,16 +28,16 @@
 
 <body class="withvernav">
 <div class="bodywrapper">
-    <div th:include="html/admin/inner :: copyheader ('experiment')"></div>
+    <div th:include="html/admin/inner :: copyheader ('device')"></div>
 
     <div class="centercontent">
 
         <div class="pageheader">
-            <h1 class="pagetitle">实验管理</h1>
-            <span class="pagedesc">The content below are loaded using ajax</span>
+            <h1 class="pagetitle">设备管理</h1>
             <ul class="hornav">
-                <li class="current"><a>实验管理</a></li>
-                <li><a id="add" href="/admin/addexperiment">添加实验</a></li>
+                <li class="current"><a>实验台设备</a></li>
+                <li><a href="/admin/adddevice">新增实验台</a></li>
+                <li><a href="/admin/device">获取设备数据</a></li>
             </ul>
         </div><!--pageheader-->
 
@@ -62,17 +62,17 @@
                         <col class="con1" width="15%"/>
                         <col class="con0" width="15%"/>
                         <col class="con1" width="15%"/>
-                        <col class="con0" width="15%"/>
-                        <col class="con1" width="44%"/>
+                        <col class="con0" width="44%"/>
                         <col class="con1" width="10%"/>
                     </colgroup>
                     <thead>
                     <tr>
                         <th width="20" class="head1 aligncenter"><input type="checkbox" name="checkall" class="checkall" /></th>
                         <th class="head0 attachement">id</th>
-                        <th class="head1">实验类型</th>
-                        <th class="head0">实验名称</th>
-                        <th class="head1">内容</th>
+                        <th class="head1">实验台名称</th>
+                        <th class="head0">实验台编号</th>
+                        <th class="head1">绑定实验题</th>
+                        <th class="head1">绑定平板号</th>
                         <th class="head0">操作</th>
                     </tr>
                     </thead>
@@ -80,9 +80,10 @@
                     <tr>
                         <th class="head1 aligncenter"><input type="checkbox" name="checkall" class="checkall2" /></th>
                         <th class="head0 attachement">id</th>
-                        <th class="head1">实验类型</th>
-                        <th class="head0">实验名称</th>
-                        <th class="head1">内容</th>
+                        <th class="head1">实验台名称</th>
+                        <th class="head0">实验台编号</th>
+                        <th class="head1">绑定实验题</th>
+                        <th class="head1">绑定平板号</th>
                         <th class="head0">操作</th>
                     </tr>
                     </tfoot>
@@ -113,7 +114,7 @@
         // $("#add").attr("href","/admin/addexperiment?id="+id)
         // if(id&&id>0) {
             $.ajax({
-                url: "/admin/getExperimentList", success: function (result) {
+                url: "/admin/getdevicelist", success: function (result) {
                     if (result && result.code == 1 && result.data) {
                         $("#userlist").empty();
                         result.data.forEach(function (item, index) {
@@ -131,20 +132,20 @@
             var userhtml="<tr class=\""+unread+"\">\n" +
                 "                            <td class=\"aligncenter\"><input type=\"checkbox\" name=\"\" /></td>\n" +
                 "                            <td class=\"aligncenter\">{id}</td>\n" +
-                "                            <td>{experimentname}</td>\n" +
-                "                            <td>{experimenttitle}</td>\n" +
-                "                            <td title='{jsonstr}'>{jsonstrsub}</td>\n" +
+                "                            <td>{exName}</td>\n" +
+                "                            <td>{exCode}</td>\n" +
+                "                            <td>{mainName}</td>\n" +
+                "                            <td>{serialid}</td>\n" +
                 "                            <td class=\"date\"><a val='{id}' t='update' class=\"btn btn4 btn_link\"></a><a val='{id}' t='del' class=\"btn btn4 btn_trash\"></a></td>\n" +
                 "                        </tr>";
             userhtml=userhtml.replace("{id}",data.id)
             userhtml=userhtml.replace("{id}",data.id)
             userhtml=userhtml.replace("{id}",data.id)
-            userhtml=userhtml.replace("{experimentname}",data.title)
-            userhtml=userhtml.replace("{experimenttitle}",data.content)
-            userhtml=userhtml.replace("{jsonstr}",data.json_value)
-            userhtml=userhtml.replace("{jsonstrsub}",data.json_value.substring(0,20))
+            userhtml=userhtml.replace("{exCode}",data.ex_code)
+            userhtml=userhtml.replace("{exName}",data.ex_name)
+            userhtml=userhtml.replace("{mainName}",data.mainName)
+            userhtml=userhtml.replace("{serialid}",data.serialid)
             $("#userlist").append(userhtml)
-
         }
     })
     function bindclick() {
@@ -152,7 +153,7 @@
             if(confirm("确定删除？")) {
                 var id = $(this).attr("val")
                 $.ajax({
-                    url: "/admin/delexperiment", data: {id: id}, success: function (result) {
+                    url: "/admin/deldevice", data: {id: id}, success: function (result) {
                         if (result && result.code == 1) {
                             alert("删除成功");
                             location.href = location.href;
@@ -165,7 +166,7 @@
         })
         $("a[t='update']").click(function () {
                 var id = $(this).attr("val")
-                location.href="/admin/addexperiment?id="+id;
+                location.href="/admin/adddevice?id="+id;
         })
     }
     // $.ajax({url:"/hotel/getCount",success:function(result){

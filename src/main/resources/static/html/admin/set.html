@@ -1,12 +1,13 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml" xmlns:th="http://www.thymeleaf.org">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>实验台--首页</title>
+<title>实验台--启停设置</title>
 <link rel="stylesheet" href="/html/admin/css/style.default.css" type="text/css" />
     <script src="/js/jquery-1.10.2.js"></script>
-<!--[if IE 9]>
+    <!--[if IE 9]>
     <link rel="stylesheet" media="screen" href="/html/admin/css/style.ie9.css"/>
 <![endif]-->
 <!--[if IE 8]>
@@ -17,7 +18,8 @@
 
 <body class="withvernav">
 <div class="bodywrapper">
-    <div th:include="html/admin/inner :: copyheader ('statis')"></div>
+    <div th:include="html/admin/inner :: copyheader ('set')"></div>
+
     <div class="centercontent">
     
         <!--<div class="pageheader">-->
@@ -33,18 +35,12 @@
         <div id="contentwrapper" class="contentwrapper">
         
         	<div id="updates" class="subcontent">
-                    <div class="notibar announcement">
-                        <a class="close"></a>
-                        <h3>最新消息</h3>
-                        <p id="news"></p>
-                    </div><!-- notification announcement -->
-                    
                     <div class="two_third dashboard_left">
 
                         <br clear="all" />
                     
                         <div class="contenttitle2 nomargintop">
-                            <h3>实验统计</h3>
+                            <h3>实验设置</h3>
                         </div><!--contenttitle-->
 
                         <br clear="all" />
@@ -59,24 +55,18 @@
                             </colgroup>
                             <thead>
                                 <tr>
-                                    <th class="head0">实验名称</th>
-                                    <th class="head1">参与人数</th>
-                                    <th class="head0">完成数</th>
-                                    <th class="head1">未通过数</th>
-                                    <th class="head0">完成率</th>
+                                    <th class="head0">选择实验类型</th>
+                                    <th class="head1">启停状态</th>
+                                    <th class="head0">加分人数</th>
+                                    <th class="head0">操作</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td class="center" id="d1">                        			</td>
-                                    <td id="d2"></td>
-                                    <td id="d3"></td>
-                                    <td id="d4"></td>
-                                    <td>
-                                        <div class="progress progress150">
-                                            <div class="bar"><div id="rat" style="width: 60%;" class="value bluebar"></div></div>
-                                        </div>
-                                    </td>
+                                    <td class="center" id="d1"><select id="experiment"></select></td>
+                                    <td id="d2"><span id="exstatus"></span></td>
+                                    <td id="d3"><input type="text" value="10" id="txt" /> </td>
+                                    <td id="d4"><a id="exdo"></a></td>
                                 </tr>
                             </tbody>
                         </table>
@@ -96,30 +86,39 @@
     
 </div><!--bodywrapper-->
 <script type="text/javascript">
-    $.ajax({url:"/hotel/getCount",success:function(result){
-            if(result&&result.data&&result.data.length>0) {
-                result.data.forEach(function (item,index) {
-                    switch (index){
-                        case 0:
-                            $("#d1").text(item)
-                            break;
-                        case 1:
-                            $("#d2").text(item)
-                            break;
-                        case 2:
-                            $("#d3").text(item)
-                            break;
-                        case 3:
-                            $("#d4").text(item)
-                            $("#usernum").text(item)
-                            break;
-                    }
-                })
-                var rat=parseFloat($("#d1").text()/$("#d2").text()).toFixed(2)*100;
-                $("#rat").css("width",rat+"%")
-                $("#userrat").text(rat+"%")
+    $.ajax({url:"/admin/getOnlineModel",success:function(result){
+            if(result&&result.data) {
+                if(result.data.exMainEntities){
+                    var idlist=new Array();
+                    $(result.data.exMainEntities).each(function (index,item) {
+                        if(!idlist.contains(item.main_type)){
+                            $("#experiment").append("<option value='"+item.main_type+"'>"+item.title+"</option>");
+                        }
+                        idlist.push(item.main_type);
+                    })
+                }
+                if(result.data.exOnlineEntity){
+                    $("#exstatus").text(result.data.exOnlineEntity.ex_status==1?"启用":"停止");
+                    $("#exdo").text(result.data.exOnlineEntity.ex_status==1?"结课":"开课");
+                    $("#exdo").click(function (d) {
+                        if($("#txt").val()==""){
+                            alert("不能为空，且为数字")
+                            return
+                        }
+                        $.ajax({url:"/admin/updateStatus",data:{bonusNum:$("#txt").val()},success:function(result){
+                            location.href=location.href
+                        }
+                        })
+                    })
+                }
             }
         }});
+    Array.prototype.contains = function ( needle ) {
+        for (i in this) {
+            if (this[i] == needle) return true;
+        }
+        return false;
+    }
 </script>
 </body>
 </html>

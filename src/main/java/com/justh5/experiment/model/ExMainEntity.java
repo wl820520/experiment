@@ -7,6 +7,15 @@ public class ExMainEntity {
     private String json_value;
     private Long create_time;
     private Integer isdelete;
+    private Integer main_type;
+
+    public Integer getMain_type() {
+        return main_type;
+    }
+
+    public void setMain_type(Integer main_type) {
+        this.main_type = main_type;
+    }
 
     public String getContent() {
         return content;

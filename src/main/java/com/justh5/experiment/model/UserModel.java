@@ -19,6 +19,33 @@ public class UserModel implements Serializable{
     private String userphone;
     private String usercode;
     private String facepic;
+    private String usersign;
+    private Integer classid;
+    private String classname;
+
+    public String getClassname() {
+        return classname;
+    }
+
+    public void setClassname(String classname) {
+        this.classname = classname;
+    }
+
+    public Integer getClassid() {
+        return classid;
+    }
+
+    public void setClassid(Integer classid) {
+        this.classid = classid;
+    }
+
+    public String getUsersign() {
+        return usersign;
+    }
+
+    public void setUsersign(String usersign) {
+        this.usersign = usersign;
+    }
 
     public String getUsercode() {
         return usercode;

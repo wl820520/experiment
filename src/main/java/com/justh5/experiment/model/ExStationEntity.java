@@ -5,9 +5,27 @@ public class ExStationEntity {
     private String ex_name;
     private String ip_address;
     private Integer mainid;
+    private String mainName;
     private String serialid;
     private String ex_code;
     private Long create_time;
+    private Integer isdelete;
+
+    public Integer getIsdelete() {
+        return isdelete;
+    }
+
+    public void setIsdelete(Integer isdelete) {
+        this.isdelete = isdelete;
+    }
+
+    public String getMainName() {
+        return mainName;
+    }
+
+    public void setMainName(String mainName) {
+        this.mainName = mainName;
+    }
 
     public Integer getId() {
         return id;
