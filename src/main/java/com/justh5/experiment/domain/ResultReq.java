@@ -5,7 +5,7 @@ import com.justh5.experiment.domain.result.JsonResultModel;
 public class ResultReq {
     private Integer score;
     private Integer userid;
-    private JsonResultModel jsonResultModel;
+    private String jsonResultModel;
 
     public Integer getScore() {
         return score;
@@ -23,11 +23,11 @@ public class ResultReq {
         this.userid = userid;
     }
 
-    public JsonResultModel getJsonResultModel() {
+    public String getJsonResultModel() {
         return jsonResultModel;
     }
 
-    public void setJsonResultModel(JsonResultModel jsonResultModel) {
+    public void setJsonResultModel(String jsonResultModel) {
         this.jsonResultModel = jsonResultModel;
     }
 }

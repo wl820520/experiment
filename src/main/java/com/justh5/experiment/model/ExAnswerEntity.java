@@ -1,6 +1,7 @@
 package com.justh5.experiment.model;
 
 public class ExAnswerEntity {
+    private Integer rownum;
     private Integer id;
     private  Integer main_id;
     private String mainName;
@@ -12,6 +13,32 @@ public class ExAnswerEntity {
     private Integer score;
     private String answer;
     private Long create_time;
+    private Long end_time;
+    private Integer isaddscore;
+
+    public Integer getIsaddscore() {
+        return isaddscore;
+    }
+
+    public void setIsaddscore(Integer isaddscore) {
+        this.isaddscore = isaddscore;
+    }
+
+    public Long getEnd_time() {
+        return end_time;
+    }
+
+    public void setEnd_time(Long end_time) {
+        this.end_time = end_time;
+    }
+
+    public Integer getRownum() {
+        return rownum;
+    }
+
+    public void setRownum(Integer rownum) {
+        this.rownum = rownum;
+    }
 
     public String getMainTitle() {
         return mainTitle;

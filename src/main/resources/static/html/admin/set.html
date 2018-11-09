@@ -105,10 +105,15 @@
                             alert("不能为空，且为数字")
                             return
                         }
-                        $.ajax({url:"/admin/updateStatus",data:{bonusNum:$("#txt").val()},success:function(result){
-                            location.href=location.href
+                        if(confirm('确认：'+(result.data.exOnlineEntity.ex_status==1?"停止":"启用")+"？")) {
+                            $.ajax({
+                                url: "/admin/updateStatus",
+                                data: {bonusNum: $("#txt").val(),status:result.data.exOnlineEntity.ex_status},
+                                success: function (result) {
+                                    location.href = location.href
+                                }
+                            })
                         }
-                        })
                     })
                 }
             }

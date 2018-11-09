@@ -113,6 +113,7 @@
                         var unread=(index%2==0?"unread":"");
                         binduser(item,unread);
                     })
+                    bindclick()
                 }
             }});
         $("#btnsave").click(function () {
@@ -143,7 +144,6 @@
             userhtml=userhtml.replace("{classname}",data.classname)
             userhtml=userhtml.replace("{classname}",data.classname)
             $("#userlist").append(userhtml)
-            bindclick()
         }
         function bindclick() {
             $("a[t='del']").click(function () {

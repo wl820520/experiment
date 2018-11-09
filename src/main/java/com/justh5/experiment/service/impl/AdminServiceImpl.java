@@ -73,4 +73,9 @@ public class AdminServiceImpl implements AdminService {
     public void delClass(Integer id) {
         experimentMapper.delClass(id);
     }
+
+    @Override
+    public void delUser(Integer id) {
+        experimentMapper.delUser(id);
+    }
 }

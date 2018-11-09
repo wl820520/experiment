@@ -43,7 +43,7 @@
                     <ul class="msghead_menu">
                         <li class="marginleft5"><a class="msgtrash" title="Trash"></a></li>
                         <li class="right"><a class="next"></a></li>
-                        <li class="right"><a class="prev prev_disabled"></a></li>
+                        <li class="right"><a class="prev"></a></li>
                         <li class="right"><span class="pageinfo">1-10 of 2,139</span></li>
                     </ul>
                     <span class="clearall"></span>
@@ -95,15 +95,68 @@
 </div><!--bodywrapper-->
 <script type="text/javascript">
     $(function () {
+        var dataList,totalList,pageindex=1,pagesize=20,pagenum=0;
         $.ajax({url:"/admin/getuserlist",success:function(result){
                 if(result&&result.code==1&&result.data&&result.data.length>0) {
-                    $("#userlist").empty();
-                    result.data.forEach(function (item,index) {
-                        var unread=(index%2==0?"unread":"");
-                        binduser(item,unread);
-                    })
+                    dataList=totalList=result.data;
+                    pagenum=dataList.length;
+                    page(pageindex);
+                    // $("#userlist").empty();
+                    // result.data.forEach(function (item,index) {
+                    //     var unread=(index%2==0?"unread":"");
+                    //     binduser(item,unread);
+                    // })
                 }
             }});
+        function page() {
+            $("#userlist").empty();
+            var start=(pageindex-1)*pagesize;
+            var end=pageindex*pagesize;
+            var size=parseInt(pagenum/pagesize)+1
+            $(".pageinfo").text(pageindex+ "-"+size+" of "+pagenum)
+            dataList.forEach(function (item,index) {
+                if(index>=start&&index<end){
+                    var unread = (index % 2 == 0 ? "unread" : "");
+                    binduser(item, unread);
+                }
+            })
+            bindclick()
+        }
+        $(".next").click(function () {
+            pageindex+=(pageindex*pagesize)>pagenum?0:1;
+            page();
+        })
+        $(".prev").click(function () {
+            pageindex-=pageindex<=1?0:1;
+            page();
+        })
+        $(".submitbutton").click(function () {
+            var txt=$("#keyword").val();
+            var newlist=[]
+            if(txt==""){
+                newlist=totalList;
+            }else{
+                totalList.forEach(function (item,index) {
+                    if(item.usercode&&item.usercode.indexOf(txt)>=0){
+                        newlist.push(item)
+                    }
+                    if(item.username&&item.username.indexOf(txt)>=0){
+                        newlist.push(item)
+                    }
+                    if(item.classname&&item.classname.indexOf(txt)>=0){
+                        newlist.push(item)
+                    }
+                    if(item.userphone&&item.userphone.indexOf(txt)>=0){
+                        newlist.push(item)
+                    }
+                })
+            }
+            dataList=newlist;
+            pageindex=1;
+            pagenum=dataList.length;
+            page();
+
+        })
         function binduser(data,unread) {
             var userhtml="<tr class=\""+unread+"\">\n" +
                 "                            <td class=\"aligncenter\"><input type=\"checkbox\" name=\"\" /></td>\n" +
@@ -117,16 +170,17 @@
                 "                        </tr>";
             userhtml=userhtml.replace("{id}",data.id)
             userhtml=userhtml.replace("{id}",data.id)
+            userhtml=userhtml.replace("{id}",data.id)
             userhtml=userhtml.replace("{usercode}",data.usercode)
             userhtml=userhtml.replace("{pic}","http://pic.justh5.com"+data.facepic)
             userhtml=userhtml.replace("{username}",data.username)
             userhtml=userhtml.replace("{classname}",data.classname)
             userhtml=userhtml.replace("{userphone}",data.userphone)
             $("#userlist").append(userhtml)
-            bindclick()
         }
         function bindclick() {
             $("a[t='del']").click(function () {
+                console.log($(this).attr("val"))
                 if(confirm("确定删除？")) {
                     var id = $(this).attr("val")
                     $.ajax({
@@ -140,6 +194,7 @@
                         }
                     });
                 }
+                return false;
             })
             $("a[t='update']").click(function () {
                 var id = $(this).attr("val")

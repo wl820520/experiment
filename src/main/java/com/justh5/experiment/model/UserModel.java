@@ -22,6 +22,15 @@ public class UserModel implements Serializable{
     private String usersign;
     private Integer classid;
     private String classname;
+    private Long logintime;
+
+    public Long getLogintime() {
+        return logintime;
+    }
+
+    public void setLogintime(Long logintime) {
+        this.logintime = logintime;
+    }
 
     public String getClassname() {
         return classname;

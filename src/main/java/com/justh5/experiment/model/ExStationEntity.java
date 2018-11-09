@@ -8,8 +8,17 @@ public class ExStationEntity {
     private String mainName;
     private String serialid;
     private String ex_code;
+    private String ex_osc;
     private Long create_time;
     private Integer isdelete;
+
+    public String getEx_osc() {
+        return ex_osc;
+    }
+
+    public void setEx_osc(String ex_osc) {
+        this.ex_osc = ex_osc;
+    }
 
     public Integer getIsdelete() {
         return isdelete;

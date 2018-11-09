@@ -4,6 +4,24 @@ public class ExOnlineEntity {
     private Integer id;
     private Integer main_type;
     private Integer ex_status;
+    private Integer version;
+    private Integer bonus_num;
+
+    public Integer getBonus_num() {
+        return bonus_num;
+    }
+
+    public void setBonus_num(Integer bonus_num) {
+        this.bonus_num = bonus_num;
+    }
+
+    public Integer getVersion() {
+        return version;
+    }
+
+    public void setVersion(Integer version) {
+        this.version = version;
+    }
 
     public Integer getId() {
         return id;

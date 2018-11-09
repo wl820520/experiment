@@ -20,9 +20,9 @@
         <span class="slogan">后台管理系统</span>
 
         <div class="search">
-            <form action="" method="post">
-                <input type="text" name="keyword" id="keyword" value="请输入" />
-                <button class="submitbutton"></button>
+            <form >
+                <input type="text" name="keyword" id="keyword" value="" placeholder="请输入" />
+                <a class="submitbutton"></a>
             </form>
         </div><!--search-->
 
@@ -76,6 +76,7 @@
         <li th:class="${current=='class'?'current':''}"><a href="/admin/class"><span class="icon icon-message"></span>班级管理</a></li>
         <li th:class="${current=='report'?'current':''}"><a href="/admin/report"><span class="icon icon-chart"></span>记录管理</a></li>
         <li th:class="${current=='device'?'current':''}"><a href="/admin/devicelist"><span class="icon icon-chart"></span>设备数据</a></li>
+        <li th:class="${current=='version'?'current':''}"><a href="/admin/version"><span class="icon icon-chart"></span>版本管理</a></li>
     </ul>
 
     <div class="headerwidget">

@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
@@ -28,6 +29,9 @@ public class ExMainService {
     public ExMainEntity getExMainById(Integer id){
         return experimentMapper.getExMainById(id);
     }
+    public void loginUser(Integer uid){
+        experimentMapper.loginUser(new Date().getTime(),uid);
+    }
     public ExStationEntity getExStationById(Integer id){
         return experimentMapper.getExStationById(id);
     }
@@ -36,6 +40,16 @@ public class ExMainService {
     }
     public List<ExStationEntity> getExStationList(){
         return experimentMapper.getExStationList();
+    }
+    public void deleteExStation(Integer id){
+        experimentMapper.delExStation(id);
+    }
+
+    public void deleteReport(Integer id){
+        experimentMapper.delExAnswer(id);
+    }
+    public void updateVersion(Integer version){
+        experimentMapper.updateVersion(version);
     }
     public void updateExStation(ExStationEntity exStationEntity){
         experimentMapper.updateExStation(exStationEntity);
@@ -47,6 +61,9 @@ public class ExMainService {
         ExOnlineEntity exOnlineEntity=experimentMapper.getExOnline();
         return exOnlineEntity;
     }
+    public Integer getUsedAnswer(Integer userid,Integer mainid){
+        return experimentMapper.getUserdAnswer(userid,mainid);
+    }
     public void updateExMain(ExMainEntity exMainEntity){
         experimentMapper.updateExMain(exMainEntity);
     }
@@ -55,6 +72,9 @@ public class ExMainService {
     }
     public void updateExOnline(Integer bonusNum){
         experimentMapper.updateExOnline(bonusNum);
+    }
+    public void updateExAnswer(){
+        experimentMapper.updateExAnswer();
     }
     public JsonResultModel getResultData(){
         JsonResultModel jsonResultModel =new JsonResultModel();
@@ -66,8 +86,11 @@ public class ExMainService {
         }
         return jsonResultModel;
     }
-    public List<ExAnswerEntity> getExAnswerEntityList(){
-        List<ExAnswerEntity> exAnswerEntities=experimentMapper.getExAnswerEntityList();
+    public List<ExAnswerEntity> getExAnswerEntityList(Integer status){
+        List<ExAnswerEntity> exAnswerEntities=experimentMapper.getExAnswerEntityList(status);
         return exAnswerEntities;
+    }
+    public String getExAnswerJsonValue(Integer id){
+        return experimentMapper.getExAnswerJsonValue(id);
     }
 }

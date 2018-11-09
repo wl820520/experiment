@@ -35,8 +35,8 @@
             <h1 class="pagetitle">记录管理</h1>
             <span class="pagedesc">The content below are loaded using ajax</span>
             <ul class="hornav">
-                <li class="current"><a>记录管理</a></li>
-                <li><a href="/admin/oldreport">旧记录管理</a></li>
+                <li><a href="/admin/report">记录管理</a></li>
+                <li class="current"><a>旧记录管理</a></li>
             </ul>
         </div><!--pageheader-->
 
@@ -79,7 +79,7 @@
                         <th class="head0">开始时间</th>
                         <th class="head0">结束时间</th>
                         <th class="head0">总耗时</th>
-                        <th class="head0">操作</th>
+                        <th class="head0">答案详情</th>
                     </tr>
                     </thead>
                     <tfoot>
@@ -94,7 +94,7 @@
                         <th class="head0">开始时间</th>
                         <th class="head0">结束时间</th>
                         <th class="head0">总耗时</th>
-                        <th class="head0">操作</th>
+                        <th class="head0">答案详情</th>
                     </tr>
                     </tfoot>
                     <tbody id="userlist">
@@ -123,6 +123,30 @@
                 return null;
             }
         }
+        function timeStamp2String(time){
+            var datetime = new Date();
+            datetime.setTime(time);
+            var year = datetime.getFullYear();
+            var month = datetime.getMonth() + 1 < 10 ? "0" + (datetime.getMonth() + 1) : datetime.getMonth() + 1;
+            var date = datetime.getDate() < 10 ? "0" + datetime.getDate() : datetime.getDate();
+            var hour = datetime.getHours()< 10 ? "0" + datetime.getHours() : datetime.getHours();
+            var minute = datetime.getMinutes()< 10 ? "0" + datetime.getMinutes() : datetime.getMinutes();
+            var second = datetime.getSeconds()< 10 ? "0" + datetime.getSeconds() : datetime.getSeconds();
+            return year + "-" + month + "-" + date+" "+hour+":"+minute+":"+second;
+        }
+        function dateDif(startdata, enddate){
+            var date = enddate - startdata;
+            var days    = date / 1000 / 60 / 60 / 24;
+            var daysRound   = Math.floor(days);
+            var hours    = date/ 1000 / 60 / 60 - (24 * daysRound);
+            var hoursRound   = Math.floor(hours);
+            var minutes   = date / 1000 /60 - (24 * 60 * daysRound) - (60 * hoursRound);
+            var minutesRound  = Math.floor(minutes);
+            var seconds   = date/ 1000 - (24 * 60 * 60 * daysRound) - (60 * 60 * hoursRound) - (60 * minutesRound);
+            var secondsRound  = Math.floor(seconds);
+            var time = ((daysRound==0?"": (daysRound+"天"))+(hoursRound==0?"":(hoursRound +"时"))+(minutesRound==0?"":(minutesRound+"分"))+secondsRound+"秒");
+            return time;
+        }
         // var id=getQueryString("id")
         // $("#add").attr("href","/admin/addexperiment?id="+id)
         // if(id&&id>0) {
@@ -135,7 +159,7 @@
             i=i>2?0:i;
         },1000)
         $.ajax({
-            url: "/admin/getreportlist",data:{status:0}, success: function (result) {
+            url: "/admin/getreportlist",data:{status:1}, success: function (result) {
                 if (result && result.code == 1 && result.data) {
                     dataList=totalList=result.data;
                     pagenum=dataList.length;
@@ -198,30 +222,6 @@
         // }else{
         //     alert("参数错误")
         // }
-        function timeStamp2String(time){
-            var datetime = new Date();
-            datetime.setTime(time);
-            var year = datetime.getFullYear();
-            var month = datetime.getMonth() + 1 < 10 ? "0" + (datetime.getMonth() + 1) : datetime.getMonth() + 1;
-            var date = datetime.getDate() < 10 ? "0" + datetime.getDate() : datetime.getDate();
-            var hour = datetime.getHours()< 10 ? "0" + datetime.getHours() : datetime.getHours();
-            var minute = datetime.getMinutes()< 10 ? "0" + datetime.getMinutes() : datetime.getMinutes();
-            var second = datetime.getSeconds()< 10 ? "0" + datetime.getSeconds() : datetime.getSeconds();
-            return year + "-" + month + "-" + date+" "+hour+":"+minute+":"+second;
-        }
-        function dateDif(startdata, enddate){
-            var date = enddate - startdata;
-            var days    = date / 1000 / 60 / 60 / 24;
-            var daysRound   = Math.floor(days);
-            var hours    = date/ 1000 / 60 / 60 - (24 * daysRound);
-            var hoursRound   = Math.floor(hours);
-            var minutes   = date / 1000 /60 - (24 * 60 * daysRound) - (60 * hoursRound);
-            var minutesRound  = Math.floor(minutes);
-            var seconds   = date/ 1000 - (24 * 60 * 60 * daysRound) - (60 * 60 * hoursRound) - (60 * minutesRound);
-            var secondsRound  = Math.floor(seconds);
-            var time = ((daysRound==0?"": (daysRound+"天"))+(hoursRound==0?"":(hoursRound +"时"))+(minutesRound==0?"":(minutesRound+"分"))+secondsRound+"秒");
-            return time;
-        }
         function bindexperiment(data,unread) {
             var userhtml="<tr class=\""+unread+"\">\n" +
                 "                            <td class=\"aligncenter\"><input type=\"checkbox\" name=\"\" /></td>\n" +
@@ -247,9 +247,8 @@
             userhtml=userhtml.replace("{starttime}",timeStamp2String(data.create_time))
             userhtml=userhtml.replace("{endtime}",timeStamp2String(data.end_time))
             userhtml=userhtml.replace("{time}",dateDif(data.create_time,data.end_time))
-            userhtml = userhtml.replace("{score}", (data.score)+ (data.isaddscore==1?"(加分)":""))
-            // userhtml=userhtml.replace("{val}",data.answer)
-            //console.log(userhtml)
+            userhtml = userhtml.replace("{score}", (data.score)+ (data.isaddscore==1?"(加分)":""));
+            userhtml=userhtml.replace("{val}",data.answer);
             $("#userlist").append(userhtml)
         }
     })

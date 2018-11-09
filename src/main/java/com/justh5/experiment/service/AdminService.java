@@ -15,4 +15,5 @@ public interface AdminService {
     void insertClassModel(ExClassEntity exClassEntity);
     void updateClassModel(ExClassEntity exClassEntity);
     void delClass(Integer id);
+    void delUser(Integer id);
 }

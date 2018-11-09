@@ -7,6 +7,7 @@ import com.justh5.experiment.model.*;
 import com.justh5.experiment.service.AdminService;
 import com.justh5.experiment.service.AppService;
 import com.justh5.experiment.service.ExMainService;
+import com.justh5.experiment.socketservice.SocketServer;
 import com.justh5.experiment.util.HTTPUtil;
 import me.chanjar.weixin.common.bean.WxJsapiSignature;
 import me.chanjar.weixin.mp.api.WxMpService;
@@ -14,6 +15,7 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -24,6 +26,8 @@ import sun.misc.BASE64Decoder;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.*;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -42,6 +46,8 @@ public class AdminController {
     private ExMainService exMainService;
     @Autowired
     private WeChatMpConfig weChatMpConfig;
+    @Autowired
+    private SocketServer socketServer;
     @CrossOrigin
     @RequestMapping("index")
     public Object jumpToView(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
@@ -84,8 +90,11 @@ public class AdminController {
     }
 
     @RequestMapping(value = "updateStatus")
-    public SysResult updateStatus(Integer bonusNum) {
+    public SysResult updateStatus(Integer bonusNum,Integer status) {
         exMainService.updateExOnline(bonusNum);
+        if(status.equals(1)) {
+            exMainService.updateExAnswer();
+        }
         return new SysResult(1, "", null);
     }
 
@@ -94,7 +103,16 @@ public class AdminController {
     public Object user(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
         return new ModelAndView("html/admin/experiment");
     }
-
+    @CrossOrigin
+    @RequestMapping("version")
+    public Object version(ModelAndView modelAndView) {
+        modelAndView.setViewName("html/admin/version");
+        ExOnlineEntity exOnlineEntity=exMainService.getExOnline();
+        if(exOnlineEntity!=null){
+            modelAndView.addObject("version",exOnlineEntity.getVersion());
+        }
+        return modelAndView;
+    }
     @RequestMapping(value = "getExperimentList")
     public SysResult getExperimentList() {
         List<ExMainEntity> exMainEntities=exMainService.getExMainList();
@@ -278,6 +296,16 @@ public class AdminController {
         }
         return modelAndView;
     }
+    @CrossOrigin
+    @RequestMapping("deluser")
+    public Object deluser(Integer id) {
+        if (id != null && id > 0) {
+            adminService.delUser(id);
+            return new SysResult(1, "success",null);
+        }else{
+            return new SysResult(99, "参数不正确",null);
+        }
+    }
     @RequestMapping(value="addusermodel")
     @ResponseBody
     public SysResult addusermodel(@RequestBody UserModel userModel){
@@ -334,11 +362,33 @@ public class AdminController {
     public Object report(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
         return new ModelAndView("html/admin/report");
     }
+
+    @RequestMapping(value = "/getExAnswerJsonValue")
+    @ResponseBody
+    public SysResult getExAnswerJsonValue(Integer id) {
+        String answer=exMainService.getExAnswerJsonValue(id);
+        if(!StringUtils.isEmpty(answer)) {
+            return new SysResult(1, "success", answer);
+        }else{
+            return new SysResult(99, "读取失败");
+        }
+    }
+    @CrossOrigin
+    @RequestMapping("oldreport")
+    public Object oldreport(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
+        return new ModelAndView("html/admin/oldreport");
+    }
+    @CrossOrigin
+    @RequestMapping("delreport")
+    public Object delreport(Integer id) {
+        exMainService.deleteReport(id);
+        return new SysResult(1, "success",null);
+    }
     @RequestMapping(value="getreportlist")
     @ResponseBody
-    public SysResult getreportlist(){
+    public SysResult getreportlist(Integer status){
         try {
-            List<ExAnswerEntity> exAnswerEntities=exMainService.getExAnswerEntityList();
+            List<ExAnswerEntity> exAnswerEntities=exMainService.getExAnswerEntityList(status);
             return new SysResult(1, "success",exAnswerEntities);
         }catch (Exception ex){
             return new SysResult(99, "getreportlist error",null);
@@ -349,7 +399,12 @@ public class AdminController {
     public Object devicelist(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
         return new ModelAndView("html/admin/devicelist");
     }
-
+    @CrossOrigin
+    @RequestMapping("deldevice")
+    public Object deldevice(Integer id) {
+        exMainService.deleteExStation(id);
+        return new SysResult(1, "success",null);
+    }
     @RequestMapping(value="getdevicelist")
     @ResponseBody
     public SysResult getdevicelist(){
@@ -509,5 +564,29 @@ public class AdminController {
             ex.printStackTrace();
         }
         return "";
+    }
+    @CrossOrigin
+    @RequestMapping("getosc")
+    public Object getosc(@RequestBody OSCResp oscResp) {
+        try {
+            if(socketServer.socketChannelList!=null&&socketServer.socketChannelList.size()>0){
+                ByteBuffer sBuffer = ByteBuffer.allocate(1024);
+                String str=JSON.toJSONString(oscResp);
+                System.out.println("发送数据："+str);
+                sBuffer = ByteBuffer.allocate(str.getBytes("UTF-8").length);
+                sBuffer.put(str.getBytes("UTF-8"));
+                sBuffer.flip();
+                for(SocketChannel socketChannel :socketServer.socketChannelList){
+                    socketChannel.write(sBuffer);
+                }
+            }else{
+
+                return new SysResult(99, "未连接设备",null);
+            }
+            return new SysResult(1, "","");
+        }catch (Exception ex){
+            ex.printStackTrace();
+        }
+        return new SysResult(99, "add error",null);
     }
 }

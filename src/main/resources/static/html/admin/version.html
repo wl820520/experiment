@@ -1,0 +1,123 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>实验台--版本管理</title>
+<link rel="stylesheet" href="/html/admin/css/style.default.css" type="text/css" />
+    <script src="/js/jquery-1.10.2.js"></script>
+    <!--[if IE 9]>
+    <link rel="stylesheet" media="screen" href="/html/admin/css/style.ie9.css"/>
+<![endif]-->
+<!--[if IE 8]>
+    <link rel="stylesheet" media="screen" href="/html/admin/css/style.ie8.css"/>
+<![endif]-->
+<![endif]-->
+</head>
+
+<body class="withvernav">
+<div class="bodywrapper">
+    <div th:include="html/admin/inner :: copyheader ('version')"></div>
+
+    <div class="centercontent">
+        
+        <div id="contentwrapper" class="contentwrapper">
+        
+        	<div id="updates" class="subcontent">
+                    <div class="two_third dashboard_left">
+
+                        <br clear="all" />
+                    
+                        <div class="contenttitle2 nomargintop">
+                            <h3>版本管理</h3>
+                        </div><!--contenttitle-->
+
+                        <br clear="all" />
+                        <form id="form1" class="stdform">
+                        <div id="validation" class="subcontent">
+                            <p>
+                                <label>版本号</label>
+                                <span class="field"><input id="version" th:value="${version}" type="text"/></span>
+                            </p>
+                            <p>
+                                <label>上传版本</label>
+                                <br class="field">
+                                <input type="file" name="file1" id="file1" /><br/>
+                                </span>
+                            </p>
+                            <br />
+                            <p class="stdformbutton">
+                                <a class="submit radius2" id="zs">提交正式版</a>
+                            </p>
+                            <br />
+                            <p class="stdformbutton">
+                                <a class="submit radius2" id="cs">提交测试版</a>
+                            </p>
+                        </div><!--subcontent-->
+                        </form>
+                    </div><!--two_third dashboard_left -->
+
+            </div><!-- #updates -->
+
+        </div><!--contentwrapper-->
+        
+        <br clear="all" />
+        
+	</div><!-- centercontent -->
+    
+    
+</div><!--bodywrapper-->
+<script type="text/javascript">
+    $("#zs").click(function () {
+        var file = document.querySelector('[type=file]');
+        // 通过FormData将文件转成二进制数据
+        var formData = new FormData();
+        // 将文件转二进制
+        formData.append('file', file.files[0]);
+        formData.append('version',$("#version").val())
+        console.log(formData)
+        $.ajax({
+            url:"/app/updateversion",
+            type:"post",
+            data:formData,
+            processData:false,
+            contentType:false,
+            success:function(data){
+                console.log(data);
+                if(data.code==1){
+                    alert("版本上传成功");
+                }else{
+                    alert(data.msg);
+                }
+            }
+        });
+    })
+    $("#cs").click(function () {
+        var file = document.querySelector('[type=file]');
+        // 通过FormData将文件转成二进制数据
+        var formData = new FormData();
+        // 将文件转二进制
+        formData.append('file', file.files[0]);
+        formData.append('version',$("#version").val())
+        console.log(formData)
+        $.ajax({
+            url:"/app/updatecsversion",
+            type:"post",
+            data:formData,
+            processData:false,
+            contentType:false,
+            success:function(data){
+                console.log(data);
+                if(data.code==1){
+                    alert("版本上传成功");
+                }else{
+                    alert(data.msg);
+                }
+            }
+        });
+    })
+
+</script>
+</body>
+</html>

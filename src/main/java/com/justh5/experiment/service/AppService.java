@@ -12,4 +12,6 @@ public interface AppService {
     UserModel getUserById(Integer id);
     void  insertUser(UserModel userModel);
     void insertExAnswerEntity(ExAnswerEntity exAnswerEntity);
+    Integer getCountAnswer();
+    void sendSMS();
 }
