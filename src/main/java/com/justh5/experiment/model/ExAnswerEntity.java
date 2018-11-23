@@ -15,6 +15,15 @@ public class ExAnswerEntity {
     private Long create_time;
     private Long end_time;
     private Integer isaddscore;
+    private String pdf;
+
+    public String getPdf() {
+        return pdf;
+    }
+
+    public void setPdf(String pdf) {
+        this.pdf = pdf;
+    }
 
     public Integer getIsaddscore() {
         return isaddscore;

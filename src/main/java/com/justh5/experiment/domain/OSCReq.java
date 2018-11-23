@@ -6,6 +6,15 @@ public class OSCReq {
     private String serialid;
     private String oSCCOde;
     private String type;
+    private String transferType;
+
+    public String getTransferType() {
+        return transferType;
+    }
+
+    public void setTransferType(String transferType) {
+        this.transferType = transferType;
+    }
 
     public String getoSCCOde() {
         return oSCCOde;

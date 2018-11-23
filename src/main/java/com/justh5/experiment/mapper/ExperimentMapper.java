@@ -68,6 +68,8 @@ public interface ExperimentMapper {
     ExOnlineEntity updateExAnswer();
     @Select("update `ex_answer` set isdelete=1 where id=#{id}")
     ExOnlineEntity delExAnswer(@Param("id") Integer id);
+    @Select("update `ex_answer` set pdf=#{pdf} where id=#{id}")
+    ExOnlineEntity updateExAnswerPdf(@Param("id") Integer id,@Param("pdf") String pdf);
     @Select("insert into `ex_answer` (main_id,user_id,station_id,score,answer,create_time,end_time,isdelete,isaddscore)VALUES(#{exAnswerEntity.main_id},#{exAnswerEntity.user_id},#{exAnswerEntity.station_id},#{exAnswerEntity.score},#{exAnswerEntity.answer},#{exAnswerEntity.create_time},#{exAnswerEntity.end_time},0,#{exAnswerEntity.isaddscore})")
     void insertExAnswerEntity(@Param("exAnswerEntity") ExAnswerEntity exAnswerEntity);
 

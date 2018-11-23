@@ -46,9 +46,15 @@ public class AppController {
     @Value("${versionpath}")
     String versionpath;
     @RequestMapping(value = "/test")
-    public SysResult test() {
-
-        return new SysResult(0, "000", "");
+    public SysResult test(String aa) {
+        //exMainService.GetTransferData("time","C1:PAVA PER,1.00E-03s");
+        //exMainService.GetTransferData("freq","C1:PAVA FREQ,1.00E+03Hz");
+        //exMainService.GetTransferData("freq","C1:PAVA FREQ,****Hz");
+        if(StringUtils.isEmpty(aa)){
+           aa="C1:PAVA MAX,1.40E+00V";
+        }
+        String bb= exMainService.TestTransferData("voltage",aa);
+        return new SysResult(0, "", bb);
     }
     @RequestMapping(value = "/login")
     public SysResult login(String username, String password,String serialid) {
@@ -250,24 +256,7 @@ public class AppController {
             return new SysResult(99, "请提交文件", null);
         }
         MultipartFile file = fileList.get(0);
-        UploadFileReq uploadFileReq=new UploadFileReq();
-        try {
-            Map<String, String[]> map = request.getParameterMap();
-            if (map != null && map.size() > 0) {
-                String jsonStr = "";
-                for (String[] val : map.values()) {
-                    for (String v : val) {
-                        jsonStr =v;// CommonHelper.getUTF8StringFromGBKString(v);
-                        //System.out.println(jsonStr);
-                    }
-                }
-                if (!StringUtils.isEmpty(jsonStr)) {
-                    uploadFileReq = JSON.parseObject(URLDecoder.decode(jsonStr), UploadFileReq.class);
-                }
-            }
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
+        UploadFileReq uploadFileReq=getfilereq(request);
         if(uploadFileReq!=null&&!StringUtils.isEmpty(uploadFileReq.getUserid())){
             if (StringUtils.isEmpty(uploadFileReq.getSerialid())) {
                 return new SysResult(99, "平板号不能为空", null);
@@ -314,6 +303,84 @@ public class AppController {
                     return new SysResult(1, "success", resultResp );
                 } else {
                     return new SysResult(99, "已经结课，不能提交答卷", null);
+                }
+            }catch (Exception ex){
+                return new SysResult(99, "数据转化异常", null);
+            }
+        }else{
+            return new SysResult(99, "请上传用户信息");
+        }
+    }
+    private UploadFileReq getfilereq(HttpServletRequest request){
+        UploadFileReq uploadFileReq=new UploadFileReq();
+        try {
+            Map<String, String[]> map = request.getParameterMap();
+            if (map != null && map.size() > 0) {
+                String jsonStr = "";
+                for (String[] val : map.values()) {
+                    for (String v : val) {
+                        jsonStr =v;
+                    }
+                }
+                if (!StringUtils.isEmpty(jsonStr)) {
+                    uploadFileReq = JSON.parseObject(URLDecoder.decode(jsonStr), UploadFileReq.class);
+                }
+            }
+        } catch (Exception ex) {
+            ex.printStackTrace();
+        }
+        return uploadFileReq;
+    }
+    @RequestMapping(value = "/uploadPdf")
+    public SysResult uploadPdf(HttpServletRequest request){
+        MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
+        List<MultipartFile> fileList = multipartRequest.getFiles("file");
+        if (fileList == null || fileList.size() == 0) {
+            return new SysResult(99, "请提交pdf", null);
+        }
+        MultipartFile file = fileList.get(0);
+        UploadFileReq uploadFileReq=getfilereq(request);
+        if(uploadFileReq!=null&&!StringUtils.isEmpty(uploadFileReq.getUserid())){
+            if (StringUtils.isEmpty(uploadFileReq.getSerialid())) {
+                return new SysResult(99, "平板号不能为空", null);
+            }
+            ExStationEntity exStationEntity = exMainService.getExStationBySerialId(uploadFileReq.getSerialid());
+            if(exStationEntity==null){
+                return new SysResult(99, "未找到绑定平板号", null);
+            }
+            ExOnlineEntity exOnlineEntity = exMainService.getExOnline();
+            UserModel userModel=appService.getUserByUserCode(uploadFileReq.getUserid());
+            if(userModel==null){
+                return new SysResult(99, "未找到绑定用户", null);
+            }
+            Integer count=0;
+            try {
+                if (exOnlineEntity != null && exOnlineEntity.getEx_status().equals(1)) {
+
+                    ExAnswerEntity exAnswerEntity = new ExAnswerEntity();
+                    //exAnswerEntity.setAnswer(answer);
+                    //System.out.println("答案："+answer);
+                    exAnswerEntity.setUser_id(userModel.getId());
+                    exAnswerEntity.setScore(uploadFileReq.getScore());
+                    exAnswerEntity.setMain_id(exStationEntity.getMainid());
+                    exAnswerEntity.setStation_id(exStationEntity.getId());
+                    exAnswerEntity.setCreate_time(userModel.getLogintime());
+                    exAnswerEntity.setEnd_time(new Date().getTime());
+                    count = appService.getCountAnswer();
+                    count=count==null?0:count;
+                    exAnswerEntity.setIsaddscore(0);
+                    if(exOnlineEntity.getBonus_num()!=null&&count<exOnlineEntity.getBonus_num()){
+                        exAnswerEntity.setIsaddscore(1);
+                        exAnswerEntity.setScore(exAnswerEntity.getScore()+2);
+                    }
+                    appService.insertExAnswerEntity(exAnswerEntity);
+                    //System.out.println("提交答案成功");
+                    ResultResp resultResp=new ResultResp();
+                    resultResp.setRank(count+1);
+                    resultResp.setIsbonus(exAnswerEntity.getIsaddscore());
+                    return new SysResult(1, "success", resultResp );
+                } else {
+                    return new SysResult(99, "已经结课，不能提交pdf", null);
                 }
             }catch (Exception ex){
                 return new SysResult(99, "数据转化异常", null);
@@ -386,45 +453,87 @@ public class AppController {
             uploadapk(file,1);
             return new SysResult(1, "success", null);
         }catch (Exception ex){
-            System.out.println(ex);
+            logger.error(ex);
             return new SysResult(99, "error", null);
         }
     }
 
     @RequestMapping(value = "/getSOC")
     @ResponseBody
-    public SysResult getSOC(@RequestBody OSCReq oscReq) {
+    public SysResult getSOC(String userid,String oSCCOde,String serialid,String type,String transferType) {
         try {
-            if(!StringUtils.isEmpty(oscReq.getUserid())&&!StringUtils.isEmpty(oscReq.getSerialid())) {
-                if(socketServer.socketChannelList!=null&&socketServer.socketChannelList.size()>0){
-                    OSCResp oscResp=new OSCResp();
+            if(StringUtils.isEmpty(userid)||StringUtils.isEmpty(oSCCOde)||StringUtils.isEmpty(serialid)||StringUtils.isEmpty(type)||StringUtils.isEmpty(transferType)){
+                return new SysResult(99, "参数不能为空 userid,oSCCOde,serialid,type,transferType", null);
+            }
+            OSCReq oscReq=new OSCReq();
+            oscReq.setoSCCOde(oSCCOde);
+            oscReq.setSerialid(serialid);
+            oscReq.setType(type);
+            oscReq.setTransferType(transferType);
+            oscReq.setUserid(userid);
+            if (!StringUtils.isEmpty(oscReq.getUserid()) && !StringUtils.isEmpty(oscReq.getSerialid())) {
+                if (socketServer.channelModel != null && socketServer.channelModel.getSocketChannel() != null && socketServer.channelModel.getSocketChannel().isConnected()) {
+                    OSCResp oscResp = new OSCResp();
                     oscResp.setType(oscReq.getType());
-                    ExStationEntity exStationEntity=exMainService.getExStationBySerialId(oscReq.getSerialid());
-                    if(exStationEntity!=null&&!StringUtils.isEmpty(exStationEntity.getEx_osc())) {
+                    ExStationEntity exStationEntity = exMainService.getExStationBySerialId(oscReq.getSerialid());
+                    if (exStationEntity != null && !StringUtils.isEmpty(exStationEntity.getEx_osc())) {
                         oscResp.setDeviceName(exStationEntity.getEx_osc());
                         oscResp.setInstruct(oscReq.getoSCCOde());
                         ByteBuffer sBuffer = ByteBuffer.allocate(1024);
                         String str = JSON.toJSONString(oscResp);
-                        System.out.println("发送数据：" + str);
+                        logger.info("发送数据：" + str);
                         sBuffer = ByteBuffer.allocate(str.getBytes("UTF-8").length);
                         sBuffer.put(str.getBytes("UTF-8"));
                         sBuffer.flip();
-                        for (SocketChannel socketChannel : socketServer.socketChannelList) {
-                            socketChannel.write(sBuffer);
+                        try {
+                            if (socketServer.channelModel.getSocketChannel().isConnected()) {
+                                logger.info("write buffer");
+                                //socketServer.channelModel.setResp("");
+                                if(socketServer.channelModel.getOscRespModelList()!=null&&socketServer.channelModel.getOscRespModelList().size()>0){
+                                    for(OSCRespModel oscRespModel:socketServer.channelModel.getOscRespModelList()){
+                                        if(!StringUtils.isEmpty(oscRespModel.getDeviceName())&&!StringUtils.isEmpty(oscResp.getDeviceName())&& oscRespModel.getDeviceName().toLowerCase().equals(oscResp.getDeviceName().toLowerCase())){
+                                            oscRespModel.setResp("");
+                                        }
+                                    }}
+                                socketServer.channelModel.getSocketChannel().write(sBuffer);
+                            }
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                            System.out.println(ex.getMessage());
                         }
-                    }else{
-                        return new SysResult(99, "后台未找到绑定设备",null);
+                        int num=6;
+                        if(oscResp.getType().equals("write")){
+                            num=16;//写指令超时时间
+                        }
+                        for (int i = 0; i < num; i++) {
+                            Thread.sleep(500);
+                            if(socketServer.channelModel.getOscRespModelList()!=null&&socketServer.channelModel.getOscRespModelList().size()>0){
+                                for(OSCRespModel oscRespModel:socketServer.channelModel.getOscRespModelList()){
+                                    if(!StringUtils.isEmpty(oscRespModel.getDeviceName())&&!StringUtils.isEmpty(oscResp.getDeviceName())&& oscRespModel.getDeviceName().toLowerCase().equals(oscResp.getDeviceName().toLowerCase())){
+                                        if (!StringUtils.isEmpty(oscRespModel.getResp())) {
+                                            if(oscRespModel.getResp().contains("error")){
+                                                return new SysResult(1, "", oscRespModel.getResp());
+                                            }
+                                            String data=exMainService.GetTransferData(oscReq.getTransferType(),oscRespModel.getResp());
+                                            logger.info("获取数据：" + oscRespModel.getResp()+"转换后："+data);
+                                            return new SysResult(1, "", data);
+                                        }
+                                    }
+                                }}
+                        }
+                        return new SysResult(99, "获取数据超时", null);
+                    } else {
+                        return new SysResult(99, "未设置设备信息", null);
                     }
-                }else{
-
-                    return new SysResult(99, "未连接设备",null);
+                } else {
+                    return new SysResult(99, "未连接设备", null);
                 }
-                return new SysResult(1, "success", null);
-            }else{
+//                return new SysResult(1, "success", null);
+            } else {
                 return new SysResult(99, "参数不能为空", null);
             }
-        }catch (Exception ex){
-            logger.error("获取示波器数据异常",ex);
+        } catch (Exception ex) {
+            logger.error("获取示波器数据异常", ex);
             System.out.println(ex);
             return new SysResult(99, "error", null);
         }

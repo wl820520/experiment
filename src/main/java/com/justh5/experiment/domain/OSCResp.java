@@ -4,6 +4,15 @@ public class OSCResp {
     private String deviceName;
     private String instruct;
     private String type;
+    private String transferType;
+
+    public String getTransferType() {
+        return transferType;
+    }
+
+    public void setTransferType(String transferType) {
+        this.transferType = transferType;
+    }
 
     public String getDeviceName() {
         return deviceName;

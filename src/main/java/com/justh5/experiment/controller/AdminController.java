@@ -48,27 +48,31 @@ public class AdminController {
     private WeChatMpConfig weChatMpConfig;
     @Autowired
     private SocketServer socketServer;
+
     @CrossOrigin
     @RequestMapping("index")
     public Object jumpToView(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
         return new ModelAndView("html/admin/index");
     }
+
     @RequestMapping(value = "/login")
     public SysResult login(String username, String password) {
-        if(StringUtils.isEmpty(username)||StringUtils.isEmpty(password)){
-            return new SysResult(99, "用户名或密码不能为空",null);
+        if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
+            return new SysResult(99, "用户名或密码不能为空", null);
         }
-        UserModel userModel=adminService.getAdminUser();
-        if(userModel!=null&&userModel.getId()>0&&userModel.getLoginname().trim().equals(username.trim())&&userModel.getLoginpwd().trim().equals(password.trim())){
-            return new SysResult(1, "success",null);
+        UserModel userModel = adminService.getAdminUser();
+        if (userModel != null && userModel.getId() > 0 && userModel.getLoginname().trim().equals(username.trim()) && userModel.getLoginpwd().trim().equals(password.trim())) {
+            return new SysResult(1, "success", null);
         }
-        return new SysResult(99, "用户名或密码错误",null);
+        return new SysResult(99, "用户名或密码错误", null);
     }
+
     @CrossOrigin
     @RequestMapping("statis")
     public Object dashboard(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
         return new ModelAndView("html/admin/statis");
     }
+
     @CrossOrigin
     @RequestMapping("set")
     public Object hotel(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
@@ -77,22 +81,22 @@ public class AdminController {
 
     @RequestMapping(value = "getOnlineModel")
     public SysResult getOnlineModel() {
-        ExOnlineEntity exOnlineEntity=exMainService.getExOnline();
-        if(exOnlineEntity!=null) {
-            OnlineResp onlineResp=new OnlineResp();
-            List<ExMainEntity> exMainEntities=exMainService.getExMainList();
+        ExOnlineEntity exOnlineEntity = exMainService.getExOnline();
+        if (exOnlineEntity != null) {
+            OnlineResp onlineResp = new OnlineResp();
+            List<ExMainEntity> exMainEntities = exMainService.getExMainList();
             onlineResp.setExMainEntities(exMainEntities);
             onlineResp.setExOnlineEntity(exOnlineEntity);
             return new SysResult(1, "", onlineResp);
-        }else{
+        } else {
             return new SysResult(99, "未找到配置", null);
         }
     }
 
     @RequestMapping(value = "updateStatus")
-    public SysResult updateStatus(Integer bonusNum,Integer status) {
+    public SysResult updateStatus(Integer bonusNum, Integer status) {
         exMainService.updateExOnline(bonusNum);
-        if(status.equals(1)) {
+        if (status.equals(1)) {
             exMainService.updateExAnswer();
         }
         return new SysResult(1, "", null);
@@ -103,36 +107,40 @@ public class AdminController {
     public Object user(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
         return new ModelAndView("html/admin/experiment");
     }
+
     @CrossOrigin
     @RequestMapping("version")
     public Object version(ModelAndView modelAndView) {
         modelAndView.setViewName("html/admin/version");
-        ExOnlineEntity exOnlineEntity=exMainService.getExOnline();
-        if(exOnlineEntity!=null){
-            modelAndView.addObject("version",exOnlineEntity.getVersion());
+        ExOnlineEntity exOnlineEntity = exMainService.getExOnline();
+        if (exOnlineEntity != null) {
+            modelAndView.addObject("version", exOnlineEntity.getVersion());
         }
         return modelAndView;
     }
+
     @RequestMapping(value = "getExperimentList")
     public SysResult getExperimentList() {
-        List<ExMainEntity> exMainEntities=exMainService.getExMainList();
+        List<ExMainEntity> exMainEntities = exMainService.getExMainList();
         return new SysResult(1, "", exMainEntities);
     }
+
     @RequestMapping(value = "delexperiment")
     public SysResult delexperiment(Integer id) {
         exMainService.delExMain(id);
         return new SysResult(1, "", null);
     }
+
     @CrossOrigin
     @RequestMapping("addexperiment")
     public Object addexperiment(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
         modelAndView.setViewName("html/admin/addexperiment");
-        String idstr= request.getParameter("id");
-        if(!StringUtils.isEmpty(idstr)){
-            Integer id=Integer.parseInt(idstr);
-            if(id>0){
-                ExMainEntity exMainEntity=exMainService.getExMainById(id);
-                if(exMainEntity!=null){
+        String idstr = request.getParameter("id");
+        if (!StringUtils.isEmpty(idstr)) {
+            Integer id = Integer.parseInt(idstr);
+            if (id > 0) {
+                ExMainEntity exMainEntity = exMainService.getExMainById(id);
+                if (exMainEntity != null) {
                     modelAndView.addObject("exMainEntity", JSON.toJSONString(exMainEntity));
                 }
             }
@@ -140,27 +148,28 @@ public class AdminController {
         return modelAndView;
     }
 
-    @RequestMapping(value="uploadpic")
+    @RequestMapping(value = "uploadpic")
     @ResponseBody
     public SysResult uploadpic(HttpServletRequest request) throws SQLException {
         MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
         List<MultipartFile> fileList = multipartRequest.getFiles("pic");
-        String returnpath=new SimpleDateFormat("yyyyMMdd").format(new Date());
-        if(fileList == null || fileList.size() == 0){
+        String returnpath ="img";// new SimpleDateFormat("yyyyMMdd").format(new Date());
+        if (fileList == null || fileList.size() == 0) {
             return new SysResult(99, "文件错误");
         }
         MultipartFile file = fileList.get(0);
-        String filename= CommonHelper.getRandomString(18)+".jpg";
+        String filename =file.getOriginalFilename();// CommonHelper.getRandomString(18) + ".jpg";
         try {
 
-            String picpath=urlpath+returnpath;
-            savePic(file.getInputStream(),picpath, filename);
-        }catch (Exception ex){
+            String picpath = urlpath + returnpath;
+            savePic(file.getInputStream(), picpath, filename);
+        } catch (Exception ex) {
 
         }
-        return new SysResult(1, "success","/experiment/"+returnpath+"/"+filename);
+        return new SysResult(1, "success", "/experiment/" + returnpath + "/" + filename);
     }
-    @RequestMapping(value="uploadImgBase64")
+
+    @RequestMapping(value = "uploadImgBase64")
     @ResponseBody
     public SysResult uploadImgBase64(HttpServletRequest request) {
         try {
@@ -173,7 +182,7 @@ public class AdminController {
                     for (String[] val : map.values()) {
                         for (String v : val) {
                             imgStr = v;
-                            System.out.println(v);
+                            logger.info(v);
                         }
                     }
                 }
@@ -233,6 +242,10 @@ public class AdminController {
             if (!tempFile.exists()) {
                 tempFile.mkdirs();
             }
+            File oldFile=new File(tempFile.getPath() + File.separator + fileName);
+            if(oldFile.exists()){
+                oldFile.delete();
+            }
             os = new FileOutputStream(tempFile.getPath() + File.separator + fileName);
             // 开始读取
             while ((len = inputStream.read(bs)) != -1) {
@@ -254,18 +267,18 @@ public class AdminController {
         }
     }
 
-    @RequestMapping(value="saveExMain")
+    @RequestMapping(value = "saveExMain")
     @ResponseBody
-    public SysResult saveExMain(@RequestBody ExMainEntity exMainEntity){
-        if(exMainEntity!=null){
+    public SysResult saveExMain(@RequestBody ExMainEntity exMainEntity) {
+        if (exMainEntity != null) {
             exMainEntity.setCreate_time(new Date().getTime());
-            if(exMainEntity.getId()!=0){
+            if (exMainEntity.getId() != 0) {
                 exMainService.updateExMain(exMainEntity);
-            }else{
+            } else {
                 exMainService.insertExMain(exMainEntity);
             }
         }
-        return new SysResult(1, "success",null);
+        return new SysResult(1, "success", null);
     }
 
 
@@ -275,40 +288,44 @@ public class AdminController {
 
         return new ModelAndView("html/admin/userlist");
     }
-    @RequestMapping(value="getuserlist")
+
+    @RequestMapping(value = "getuserlist")
     @ResponseBody
-    public SysResult getuserlist(HttpServletRequest request){
-        return new SysResult(1, "success",adminService.getUserList());
+    public SysResult getuserlist(HttpServletRequest request) {
+        return new SysResult(1, "success", adminService.getUserList());
     }
+
     @CrossOrigin
     @RequestMapping("adduser")
     public Object adduser(HttpServletRequest request, ModelAndView modelAndView) {
         modelAndView.setViewName("html/admin/adduser");
-        String idstr= request.getParameter("id");
-        if(!StringUtils.isEmpty(idstr)){
-            Integer id=Integer.parseInt(idstr);
-            if(id>0){
-                UserModel userModel=appService.getUserById(id);
-                if(userModel!=null){
+        String idstr = request.getParameter("id");
+        if (!StringUtils.isEmpty(idstr)) {
+            Integer id = Integer.parseInt(idstr);
+            if (id > 0) {
+                UserModel userModel = appService.getUserById(id);
+                if (userModel != null) {
                     modelAndView.addObject("userInfo", JSON.toJSONString(userModel));
                 }
             }
         }
         return modelAndView;
     }
+
     @CrossOrigin
     @RequestMapping("deluser")
     public Object deluser(Integer id) {
         if (id != null && id > 0) {
             adminService.delUser(id);
-            return new SysResult(1, "success",null);
-        }else{
-            return new SysResult(99, "参数不正确",null);
+            return new SysResult(1, "success", null);
+        } else {
+            return new SysResult(99, "参数不正确", null);
         }
     }
-    @RequestMapping(value="addusermodel")
+
+    @RequestMapping(value = "addusermodel")
     @ResponseBody
-    public SysResult addusermodel(@RequestBody UserModel userModel){
+    public SysResult addusermodel(@RequestBody UserModel userModel) {
         try {
             userModel.setUsertype(0);
             userModel.setEmail("");
@@ -318,27 +335,30 @@ public class AdminController {
             } else {
                 appService.insertUser(userModel);
             }
-        }catch (Exception ex){
-            logger.error("addusermodel error",ex);
-            return new SysResult(99, "add error",null);
+        } catch (Exception ex) {
+            logger.error("addusermodel error", ex);
+            return new SysResult(99, "add error", null);
         }
-        return new SysResult(1, "success",null);
+        return new SysResult(1, "success", null);
     }
+
     @CrossOrigin
     @RequestMapping("class")
     public Object classlist(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
 
         return new ModelAndView("html/admin/classlist");
     }
-    @RequestMapping(value="getclasslist")
-    @ResponseBody
-    public SysResult getclasslist(HttpServletRequest request){
 
-        return new SysResult(1, "success",adminService.getClassList());
-    }
-    @RequestMapping(value="addclass")
+    @RequestMapping(value = "getclasslist")
     @ResponseBody
-    public SysResult addclass(@RequestBody ExClassEntity exClassEntity){
+    public SysResult getclasslist(HttpServletRequest request) {
+
+        return new SysResult(1, "success", adminService.getClassList());
+    }
+
+    @RequestMapping(value = "addclass")
+    @ResponseBody
+    public SysResult addclass(@RequestBody ExClassEntity exClassEntity) {
         try {
             exClassEntity.setCreatetime(new Date().getTime());
             if (exClassEntity.getId() > 0) {
@@ -346,17 +366,19 @@ public class AdminController {
             } else {
                 adminService.insertClassModel(exClassEntity);
             }
-        }catch (Exception ex){
-            logger.error("addusermodel error",ex);
-            return new SysResult(99, "add error",null);
+        } catch (Exception ex) {
+            logger.error("addusermodel error", ex);
+            return new SysResult(99, "add error", null);
         }
-        return new SysResult(1, "success",null);
+        return new SysResult(1, "success", null);
     }
+
     @RequestMapping(value = "delclass")
     public SysResult delclass(Integer id) {
         adminService.delClass(id);
         return new SysResult(1, "", null);
     }
+
     @CrossOrigin
     @RequestMapping("report")
     public Object report(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
@@ -366,53 +388,59 @@ public class AdminController {
     @RequestMapping(value = "/getExAnswerJsonValue")
     @ResponseBody
     public SysResult getExAnswerJsonValue(Integer id) {
-        String answer=exMainService.getExAnswerJsonValue(id);
-        if(!StringUtils.isEmpty(answer)) {
+        String answer = exMainService.getExAnswerJsonValue(id);
+        if (!StringUtils.isEmpty(answer)) {
             return new SysResult(1, "success", answer);
-        }else{
+        } else {
             return new SysResult(99, "读取失败");
         }
     }
+
     @CrossOrigin
     @RequestMapping("oldreport")
     public Object oldreport(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
         return new ModelAndView("html/admin/oldreport");
     }
+
     @CrossOrigin
     @RequestMapping("delreport")
     public Object delreport(Integer id) {
         exMainService.deleteReport(id);
-        return new SysResult(1, "success",null);
+        return new SysResult(1, "success", null);
     }
-    @RequestMapping(value="getreportlist")
+
+    @RequestMapping(value = "getreportlist")
     @ResponseBody
-    public SysResult getreportlist(Integer status){
+    public SysResult getreportlist(Integer status) {
         try {
-            List<ExAnswerEntity> exAnswerEntities=exMainService.getExAnswerEntityList(status);
-            return new SysResult(1, "success",exAnswerEntities);
-        }catch (Exception ex){
-            return new SysResult(99, "getreportlist error",null);
+            List<ExAnswerEntity> exAnswerEntities = exMainService.getExAnswerEntityList(status);
+            return new SysResult(1, "success", exAnswerEntities);
+        } catch (Exception ex) {
+            return new SysResult(99, "getreportlist error", null);
         }
     }
+
     @CrossOrigin
     @RequestMapping("devicelist")
     public Object devicelist(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
         return new ModelAndView("html/admin/devicelist");
     }
+
     @CrossOrigin
     @RequestMapping("deldevice")
     public Object deldevice(Integer id) {
         exMainService.deleteExStation(id);
-        return new SysResult(1, "success",null);
+        return new SysResult(1, "success", null);
     }
-    @RequestMapping(value="getdevicelist")
+
+    @RequestMapping(value = "getdevicelist")
     @ResponseBody
-    public SysResult getdevicelist(){
+    public SysResult getdevicelist() {
         try {
-            List<ExStationEntity> exStationEntities=exMainService.getExStationList();
-            return new SysResult(1, "success",exStationEntities);
-        }catch (Exception ex){
-            return new SysResult(99, "getreportlist error",null);
+            List<ExStationEntity> exStationEntities = exMainService.getExStationList();
+            return new SysResult(1, "success", exStationEntities);
+        } catch (Exception ex) {
+            return new SysResult(99, "getreportlist error", null);
         }
     }
 
@@ -420,32 +448,33 @@ public class AdminController {
     @RequestMapping("adddevice")
     public Object adddevice(HttpServletRequest request, ModelAndView modelAndView) {
         modelAndView.setViewName("html/admin/adddevice");
-        String idstr= request.getParameter("id");
-        if(!StringUtils.isEmpty(idstr)){
-            Integer id=Integer.parseInt(idstr);
-            if(id>0){
-                ExStationEntity exStationEntity=exMainService.getExStationById(id);
-                if(exStationEntity!=null){
+        String idstr = request.getParameter("id");
+        if (!StringUtils.isEmpty(idstr)) {
+            Integer id = Integer.parseInt(idstr);
+            if (id > 0) {
+                ExStationEntity exStationEntity = exMainService.getExStationById(id);
+                if (exStationEntity != null) {
                     modelAndView.addObject("exStationEntity", JSON.toJSONString(exStationEntity));
                 }
             }
         }
         return modelAndView;
     }
-    @RequestMapping(value="adddevicemodel")
+
+    @RequestMapping(value = "adddevicemodel")
     @ResponseBody
-    public SysResult adddevicemodel(@RequestBody ExStationEntity exStationEntity){
+    public SysResult adddevicemodel(@RequestBody ExStationEntity exStationEntity) {
         try {
             exStationEntity.setCreate_time(new Date().getTime());
             exStationEntity.setIsdelete(0);
-            if(exStationEntity.getId()>0){
+            if (exStationEntity.getId() > 0) {
                 exMainService.updateExStation(exStationEntity);
-            }else{
+            } else {
                 exMainService.insertExStation(exStationEntity);
             }
-            return new SysResult(1, "success",null);
-        }catch (Exception ex){
-            return new SysResult(99, "getreportlist error",null);
+            return new SysResult(1, "success", null);
+        } catch (Exception ex) {
+            return new SysResult(99, "getreportlist error", null);
         }
     }
 
@@ -454,45 +483,50 @@ public class AdminController {
     public Object device(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
         return new ModelAndView("html/admin/device");
     }
-    @RequestMapping(value="getdevice")
+
+    @RequestMapping(value = "getdevice")
     @ResponseBody
-    public SysResult getdevice(@RequestBody DeviceReq deviceReq){
+    public SysResult getdevice(@RequestBody DeviceReq deviceReq) {
         try {
-            String data="test";
-            Map<String, Object> params=new HashMap<>();
-            params.put("getdevname",deviceReq.getIpaddress());
-            params.put("gettype",deviceReq.getSelectdevice());
-            String result=  HTTPUtil.httpClientGet("http://123.56.255.65:503/getval",params,"utf-8");
-            logger.info("获取设备信息：dev "+deviceReq.getIpaddress()+"  type"+deviceReq.getSelectdevice()+"  "+result);
-            return new SysResult(1, "success",result);
-        }catch (Exception ex){
-            logger.error("获取设备信息异常：",ex);
-            return new SysResult(99, "getreportlist error",null);
+            String data = "test";
+            Map<String, Object> params = new HashMap<>();
+            params.put("getdevname", deviceReq.getIpaddress());
+            params.put("gettype", deviceReq.getSelectdevice());
+            String result = HTTPUtil.httpClientGet("http://123.56.255.65:503/getval", params, "utf-8");
+            logger.info("获取设备信息：dev " + deviceReq.getIpaddress() + "  type" + deviceReq.getSelectdevice() + "  " + result);
+            return new SysResult(1, "success", result);
+        } catch (Exception ex) {
+            logger.error("获取设备信息异常：", ex);
+            return new SysResult(99, "getreportlist error", null);
         }
     }
+
     @Autowired
     private WxMpService wxMpService;
+
     @CrossOrigin
     @RequestMapping("scanRegister")
     public Object scanRegister(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
-        wxMpService=weChatMpConfig.wxMpService();
+        wxMpService = weChatMpConfig.wxMpService();
         modelAndView.setViewName("html/admin/register");
         try {
-            String url="http://experiment.justh5.com/admin/scanRegister";
-            modelAndView.addObject("sign",getSign(url));
-        }catch (Exception ex){
+            String url = "http://experiment.justh5.com/admin/scanRegister";
+            modelAndView.addObject("sign", getSign(url));
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return modelAndView;
     }
+
     @CrossOrigin
     @RequestMapping("inner")
     public Object inner() {
         return new ModelAndView("html/admin/inner");
     }
-    @RequestMapping(value="scanAddUser")
+
+    @RequestMapping(value = "scanAddUser")
     @ResponseBody
-    public SysResult scanAddUser(@RequestBody UserModel userModel){
+    public SysResult scanAddUser(@RequestBody UserModel userModel) {
         try {
             userModel.setUsertype(0);
             userModel.setEmail("");
@@ -500,16 +534,16 @@ public class AdminController {
             userModel.setLoginpwd("");
             userModel.setLoginname("");
             userModel.setUsersign("");
-            UserModel userModel1= appService.getUserByUserCode(userModel.getUsercode());
-            if (userModel1!=null) {
-                if(userModel1.getUsertype().equals(3)){
+            UserModel userModel1 = appService.getUserByUserCode(userModel.getUsercode());
+            if (userModel1 != null) {
+                if (userModel1.getUsertype().equals(3)) {
                     userModel1.setUsername(userModel.getUsername());
                     userModel1.setUserphone(userModel.getUserphone());
                     userModel1.setFacepic(userModel.getFacepic());
                     userModel1.setUsertype(0);
                     userModel1.setClassid(userModel.getClassid());
                     adminService.updateUser(userModel1);
-                }else {
+                } else {
                     return new SysResult(99, "您的学号已经注册", null);
                 }
             } else {
@@ -517,76 +551,107 @@ public class AdminController {
                 appService.insertUser(userModel);
                 return new SysResult(1, "注册成功，您未报本实验课，请联系老师", null);
             }
-        }catch (Exception ex){
-            logger.error("addusermodel error",ex);
-            return new SysResult(99, "add error",null);
+        } catch (Exception ex) {
+            logger.error("addusermodel error", ex);
+            return new SysResult(99, "add error", null);
         }
-        return new SysResult(1, "注册成功",null);
+        return new SysResult(1, "注册成功", null);
     }
-    @RequestMapping(value="downloadImg")
+
+    @RequestMapping(value = "downloadImg")
     @ResponseBody
-    public SysResult downloadImg(String server_id){
+    public SysResult downloadImg(String server_id) {
         try {
-            wxMpService=weChatMpConfig.wxMpService();
+            wxMpService = weChatMpConfig.wxMpService();
             String imgname = CommonHelper.getRandomString(10);
-            String returnpath=new SimpleDateFormat("yyyyMMdd/").format(new Date());
-            String picpath=urlpath+returnpath;
-            InputStream inputStream= wxMpService.getMaterialService().materialImageOrVoiceDownload(server_id);
-            savePic(inputStream,picpath,imgname);
-            return new SysResult(1, "success","/experiment/"+returnpath+imgname+".jpg");
-        }catch (Exception ex){
-            logger.error("get wx server img error",ex);
-            return new SysResult(99, "add error",null);
+            String returnpath = new SimpleDateFormat("yyyyMMdd/").format(new Date());
+            String picpath = urlpath + returnpath;
+            InputStream inputStream = wxMpService.getMaterialService().materialImageOrVoiceDownload(server_id);
+            savePic(inputStream, picpath, imgname);
+            return new SysResult(1, "success", "/experiment/" + returnpath + imgname + ".jpg");
+        } catch (Exception ex) {
+            logger.error("get wx server img error", ex);
+            return new SysResult(99, "add error", null);
         }
     }
+
     @CrossOrigin
     @RequestMapping("scan")
     public Object scan(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
-        wxMpService=weChatMpConfig.wxMpService();
+        wxMpService = weChatMpConfig.wxMpService();
         modelAndView.setViewName("html/admin/scan");
         try {
-            String url="http://experiment.justh5.com/admin/scan";
-            modelAndView.addObject("sign",getSign(url));
-            List<ExClassEntity> exClassEntities=adminService.getClassList();
-            modelAndView.addObject("classes",JSON.toJSONString(exClassEntities));
-        }catch (Exception ex){
+            String url = "http://experiment.justh5.com/admin/scan";
+            modelAndView.addObject("sign", getSign(url));
+            List<ExClassEntity> exClassEntities = adminService.getClassList();
+            modelAndView.addObject("classes", JSON.toJSONString(exClassEntities));
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return modelAndView;
     }
-    private String getSign(String url){
+
+    private String getSign(String url) {
         try {
             WxJsapiSignature wxJsapiSignature = wxMpService.createJsapiSignature(url);
             String sign = JSON.toJSONString(wxJsapiSignature);
             logger.info(sign);
             return sign;
-        }catch (Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         return "";
     }
+
     @CrossOrigin
     @RequestMapping("getosc")
     public Object getosc(@RequestBody OSCResp oscResp) {
         try {
-            if(socketServer.socketChannelList!=null&&socketServer.socketChannelList.size()>0){
+            if (socketServer.channelModel != null && socketServer.channelModel.getSocketChannel() != null && socketServer.channelModel.getSocketChannel().isConnected()) {
                 ByteBuffer sBuffer = ByteBuffer.allocate(1024);
-                String str=JSON.toJSONString(oscResp);
-                System.out.println("发送数据："+str);
+                String str = JSON.toJSONString(oscResp);
+                logger.info("发送数据：" + str);
                 sBuffer = ByteBuffer.allocate(str.getBytes("UTF-8").length);
                 sBuffer.put(str.getBytes("UTF-8"));
                 sBuffer.flip();
-                for(SocketChannel socketChannel :socketServer.socketChannelList){
-                    socketChannel.write(sBuffer);
+                logger.info("write buffer");
+                if(socketServer.channelModel.getOscRespModelList()!=null&&socketServer.channelModel.getOscRespModelList().size()>0){
+                    for(OSCRespModel oscRespModel:socketServer.channelModel.getOscRespModelList()){
+                        if(!StringUtils.isEmpty(oscRespModel.getDeviceName())&&!StringUtils.isEmpty(oscResp.getDeviceName())&& oscRespModel.getDeviceName().toLowerCase().equals(oscResp.getDeviceName().toLowerCase())){
+                            oscRespModel.setResp("");
+                        }
+                    }
                 }
-            }else{
-
-                return new SysResult(99, "未连接设备",null);
+                socketServer.channelModel.getSocketChannel().write(sBuffer);
+                int num=6;
+                if(oscResp.getType().equals("write")){
+                    num=16;//写指令超时时间
+                }
+                for (int i = 0; i < num; i++) {
+                    Thread.sleep(500);
+                    if (socketServer.channelModel.getOscRespModelList() != null && socketServer.channelModel.getOscRespModelList().size() > 0) {
+                        for (OSCRespModel oscRespModel : socketServer.channelModel.getOscRespModelList()) {
+                            if (!StringUtils.isEmpty(oscRespModel.getDeviceName()) && !StringUtils.isEmpty(oscResp.getDeviceName()) && oscRespModel.getDeviceName().toLowerCase().equals(oscResp.getDeviceName().toLowerCase())) {
+                                if (!StringUtils.isEmpty(oscRespModel.getResp())) {
+                                    if (oscRespModel.getResp().contains("error")) {
+                                        return new SysResult(1, "", oscRespModel.getResp());
+                                    }
+                                    String data = exMainService.GetTransferData(oscResp.getTransferType(), oscRespModel.getResp());
+                                    logger.info("获取数据：" + oscRespModel.getResp() + "转换后：" + data);
+                                    return new SysResult(1, "", "原始数据：" + oscRespModel.getResp() + " 转换后：" + data);
+                                }
+                            }
+                        }
+                    }
+                }
+                return new SysResult(99, "获取数据超时", null);
+            } else {
+                return new SysResult(99, "未连接设备", null);
             }
-            return new SysResult(1, "","");
-        }catch (Exception ex){
+        } catch (Exception ex) {
             ex.printStackTrace();
+            System.out.println(ex.getMessage());
         }
-        return new SysResult(99, "add error",null);
+        return new SysResult(99, "异常", null);
     }
 }
