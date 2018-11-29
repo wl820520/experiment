@@ -38,6 +38,9 @@ public class ExMainService {
     public ExMainEntity getExMainById(Integer id) {
         return experimentMapper.getExMainById(id);
     }
+    public ExAnswerEntity getExAnswerById(Integer id){
+        return experimentMapper.getExAnswerById(id);
+    }
 
     public void loginUser(Integer uid) {
         experimentMapper.loginUser(new Date().getTime(), uid);

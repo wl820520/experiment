@@ -1,6 +1,9 @@
 package com.justh5.experiment.controller;
 
 import com.alibaba.fastjson.JSON;
+import com.google.gson.Gson;
+import com.google.gson.internal.LinkedTreeMap;
+import com.google.gson.reflect.TypeToken;
 import com.justh5.experiment.config.WeChatMpConfig;
 import com.justh5.experiment.domain.*;
 import com.justh5.experiment.model.*;
@@ -11,6 +14,7 @@ import com.justh5.experiment.socketservice.SocketServer;
 import com.justh5.experiment.util.HTTPUtil;
 import me.chanjar.weixin.common.bean.WxJsapiSignature;
 import me.chanjar.weixin.mp.api.WxMpService;
+import net.sf.json.util.JSONUtils;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -653,5 +657,170 @@ public class AdminController {
             System.out.println(ex.getMessage());
         }
         return new SysResult(99, "异常", null);
+    }
+
+    @CrossOrigin
+    @RequestMapping("recode")
+    public Object recode(HttpServletRequest request,ModelAndView modelAndView) {
+        modelAndView.setViewName("html/admin/recode");
+        String id = request.getParameter("id");
+        List<RecodeModel> recodeModels=new ArrayList<>();
+        if (id != null) {
+            Gson gson=new Gson();
+            ExAnswerEntity answer= exMainService.getExAnswerById(Integer.parseInt(id));
+            if(answer!=null){
+                ExMainEntity exMainEntity= exMainService.getExMainById(answer.getMain_id());
+                if(exMainEntity!=null){
+                    RecodeModel recode=new RecodeModel();
+                    recode.setId(0);
+                    recode.setTitle("总分");
+                    recode.setScore(answer.getScore());
+                    recodeModels.add(recode);
+                    AnswerBase answerBase= JSON.parseObject(answer.getAnswer(),AnswerBase.class);
+                     //Map<String,Object> mapAnswer= gson.fromJson(answer.getAnswer(), new TypeToken<HashMap<String,Object>>(){}.getType());
+                     Map<String,Object> mapEx= gson.fromJson(exMainEntity.getJson_value(), new TypeToken<HashMap<String,Object>>(){}.getType());
+//                     for(String key :mapAnswer.keySet()){
+//                         Object obj=mapAnswer.get(key);
+//                         getRecodeModelRef(mapEx,obj,key,recodeModels);
+//                     }
+                    if(answerBase.getFormal()!=null&&answerBase.getFormal().size()>0){
+                        for(AnswerModel answerModel:answerBase.getFormal()){
+                            if(answerModel.getId()!=null&&answerModel.getId()>0){
+                                RecodeModel recodeModel=new RecodeModel();
+                                if(answerModel.getAnswer()!=null&&answerModel.getAnswer().size()>0){
+                                    List<AnswerModel> recodeModelList=new ArrayList<>();
+                                    for(String key:mapEx.keySet()){
+                                        recodeModelList= getRecodeId(key,mapEx.get(key),answerModel.getId());
+                                        if(recodeModelList!=null&&recodeModelList.size()>0) {
+                                            break;
+                                        }
+                                    }
+                                    String answertxt="";
+                                    for(AnswerAnswerModel answerAnswerModel:answerModel.getAnswer()){
+                                        answertxt+=answerAnswerModel.getChoose()+""+",";
+                                    }
+                                    String re="";
+                                    for(AnswerModel answerModel1:recodeModelList){
+                                        if(answerModel1.isIstrue()){
+                                            re+=answerModel1.getName()+",";
+                                        }
+                                    }
+                                    recodeModel.setAnswer(re);
+                                    recodeModel.setId(answerModel.getId());
+                                    recodeModel.setChoose(answertxt);
+                                    recodeModel.setContent("");
+                                    recodeModel.setScore(answerModel.getScore());
+                                    recodeModel.setTitle(answertxt.equalsIgnoreCase(re)?"正确":"错误");
+                                    recodeModel.setType("select");
+                                }
+                                if(answerModel.getArray()!=null&&answerModel.getArray().size()>0){
+                                    String answertxt="";
+                                    for(List<AnswerArrayModel> answerArrayModels:answerModel.getArray()){
+                                        if(answerArrayModels!=null&&answerArrayModels.size()>0) {
+                                            for (AnswerArrayModel answerArrayModel : answerArrayModels) {
+                                                if(answerArrayModel!=null&&answerArrayModel.getId()>0){
+                                                    answertxt+="id:"+answerArrayModel.getId()+" name:"+answerArrayModel.getName()+" value:"+answerArrayModel.getValue();
+                                                }
+                                            }
+                                        }
+                                    }
+                                    recodeModel.setAnswer("");
+                                    recodeModel.setId(answerModel.getId());
+                                    recodeModel.setChoose(answertxt);
+                                    recodeModel.setContent("");
+                                    recodeModel.setScore(answerModel.getScore());
+                                    recodeModel.setTitle(answerModel.getTitle());
+                                    recodeModel.setType(answerModel.getType());
+                                }
+                                if(!StringUtils.isEmpty(answerModel.getType())&&answerModel.getType().equals("input")){
+                                    recodeModel.setAnswer("");
+                                    recodeModel.setId(answerModel.getId());
+                                    recodeModel.setChoose(answerModel.getValue());
+                                    recodeModel.setContent("");
+                                    recodeModel.setScore(answerModel.getScore());
+                                    recodeModel.setTitle(answerModel.getScore()>0?"正确":"错误");
+                                    recodeModel.setType(answerModel.getType());
+                                }
+                                recodeModels.add(recodeModel);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        modelAndView.addObject("recode",JSON.toJSONString(recodeModels));
+        return modelAndView;
+    }
+    private List<AnswerModel> getRecodeId(String key,Object val,Integer id){
+        List<AnswerModel> answerModels=new ArrayList<>();
+        try{
+            ArrayList<Object> objects=(ArrayList<Object>)val;
+            if(objects!=null&&objects.size()>0){
+                Gson gson=new Gson();
+                for(Object object:objects){
+                    //Map<String,Object> mapEx= gson.fromJson(object.toString(), new TypeToken<HashMap<String,Object>>(){}.getType());
+                    Map<String,Object> mapEx= ((LinkedTreeMap)object);
+                    if(mapEx!=null){
+                        for(String objkey:mapEx.keySet()){
+                            boolean isfind=false;
+                            if(objkey.equals("id")){
+                                Integer newid=Integer.parseInt(mapEx.get(objkey).toString().replace(".0",""));
+                                if(newid>0&&newid.equals(id)){
+                                    isfind=true;
+                                }
+                            }
+                            if(isfind){
+                                ArrayList<Object> objs=(ArrayList<Object>)mapEx.get("answer");
+                                for(Object obj:objs){
+                                    Map<String,Object> linkkey= ((LinkedTreeMap)obj);
+                                    AnswerModel answerModel=new AnswerModel();
+                                    for(String link:linkkey.keySet()){
+                                        switch (link){
+                                            case "name":
+                                                answerModel.setName(linkkey.get("name").toString());
+                                                break;
+                                            case "title":
+                                                answerModel.setTitle(linkkey.get("title").toString());
+                                                break;
+                                            case "istrue":
+                                                answerModel.setIstrue(linkkey.get("istrue").toString().replace(".0","").equals("0")?false:true);
+                                        }
+                                    }
+                                    answerModels.add(answerModel);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }catch (Exception ex){
+            System.out.println(ex);
+        }
+        return answerModels;
+    }
+    private void getRecodeModelRef(Map<String,Object> mapEx,Object obj,String key,List<RecodeModel> recodeModels){
+        RecodeModel recodeModel=new RecodeModel();
+        for(String key2:mapEx.keySet()){
+            if(key.equals(key2)){
+                if (obj instanceof Integer) {
+                    int value = ((Integer) obj).intValue();
+                } else if (obj instanceof String) {
+                    String s = (String) obj;
+
+
+                } else if (obj instanceof Double) {
+                    double d = ((Double) obj).doubleValue();
+                } else if (obj instanceof Float) {
+                    float f = ((Float) obj).floatValue();
+                } else if (obj instanceof Long) {
+                    long l = ((Long) obj).longValue();
+                } else if (obj instanceof Boolean) {
+                    boolean b = ((Boolean) obj).booleanValue();
+                } else if (obj instanceof Date) {
+                    Date d = (Date) obj;
+                }
+            }
+        }
+        return ;
     }
 }

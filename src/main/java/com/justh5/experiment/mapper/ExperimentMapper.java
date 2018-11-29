@@ -30,7 +30,7 @@ public interface ExperimentMapper {
     void loginUser(@Param("logintime") Long logintime,@Param("id") Integer id);
 
 
-    @Select("select *from `ex_main` where isdelete = 0")
+    @Select("select id,main_type,content,title,substring(json_value,1,100),create_time from `ex_main` where isdelete = 0 ")
     List<ExMainEntity> getExMainList();
     @Select("update `ex_main` set isdelete = 1 where id=#{id}")
     void delExMain(Integer id);
@@ -77,7 +77,8 @@ public interface ExperimentMapper {
     List<ExAnswerEntity> getExAnswerEntityList(@Param("status")Integer status);
     @Select("select answer from `ex_answer` where id= #{id} ")
     String getExAnswerJsonValue(@Param("id")Integer id);
-
+    @Select("select * from `ex_answer` where id= #{id} ")
+    ExAnswerEntity getExAnswerById(@Param("id")Integer id);
     @Select("SELECT count(*) count FROM `ex_answer` where `status`=0 and isdelete=0")
     Integer getCountAnswer();
     @Select("SELECT count(*) count FROM `ex_answer` where `user_id`=#{userid} and `main_id`=#{mainid} and isdelete=0")

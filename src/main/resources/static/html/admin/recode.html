@@ -1,0 +1,203 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>实验台管理--记录详情</title>
+<link rel="stylesheet" href="/html/admin/css/style.default.css" type="text/css" />
+<!--<script type="text/javascript" src="js/plugins/jquery-1.7.min.js"></script>-->
+<!--<script type="text/javascript" src="js/plugins/jquery-ui-1.8.16.custom.min.js"></script>-->
+<!--<script type="text/javascript" src="js/plugins/jquery.cookie.js"></script>-->
+<!--<script type="text/javascript" src="js/plugins/colorpicker.js"></script>-->
+<!--<script type="text/javascript" src="js/plugins/jquery.jgrowl.js"></script>-->
+<!--<script type="text/javascript" src="js/plugins/jquery.alerts.js"></script>-->
+<!--<script type="text/javascript" src="js/custom/general.js"></script>-->
+<!--<script type="text/javascript" src="js/custom/elements.js"></script>-->
+    <script src="/js/jquery-1.10.2.js"></script>
+<!--[if IE 9]>
+    <link rel="stylesheet" media="screen" href="/html/admin/css/style.ie9.css"/>
+<![endif]-->
+<!--[if IE 8]>
+    <link rel="stylesheet" media="screen" href="/html/admin/css/style.ie8.css"/>
+<![endif]-->
+<!--[if lt IE 9]>
+	<!--<script src="js/plugins/css3-mediaqueries.js"></script>-->
+<![endif]-->
+</head>
+
+<body class="withvernav">
+<div class="bodywrapper">
+    <div th:include="html/admin/inner :: copyheader ('report')"></div>
+    <div class="centercontent">
+
+        <div class="pageheader">
+            <h1 class="pagetitle">记录详情</h1>
+            <span class="pagedesc">The content below are loaded using ajax</span>
+        </div><!--pageheader-->
+
+        <div id="contentwrapper" class="contentwrapper">
+
+            <div id="inbox" class="subcontent">
+
+                <div class="msghead">
+                    <ul class="msghead_menu">
+                        <li class="marginleft5"><a class="msgtrash" title="Trash"></a></li>
+                        <li class="right"><a class="next"></a></li>
+                        <li class="right"><a class="prev"></a></li>
+                        <li class="right"><span class="pageinfo">1-10 of 2,139</span></li>
+                    </ul>
+                    <span class="clearall"></span>
+                </div><!--msghead-->
+
+                <table cellpadding="0" cellspacing="0" border="0" class="stdtable mailinbox">
+                    <colgroup>
+                        <col class="con1" width="4%"/>
+                        <col class="con0" width="4%" />
+                        <col class="con1" width="8%"/>
+                        <col class="con0" width="8%"/>
+                        <col class="con1" width="8%"/>
+                        <col class="con0" width="15%"/>
+                        <col class="con1" width="15%"/>
+                        <col class="con0" width="15%"/>
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th width="20" class="head1 aligncenter"><input type="checkbox" name="checkall" class="checkall" /></th>
+                        <th class="head0 attachement">id</th>
+                        <th class="head1">标题</th>
+                        <th class="head0">内容</th>
+                        <th class="head1">分数</th>
+                        <th class="head0">类型</th>
+                        <th class="head1">选择</th>
+                        <th class="head0">答案</th>
+                    </tr>
+                    </thead>
+                    <tfoot>
+                    <tr>
+                        <th class="head1 aligncenter"><input type="checkbox" name="checkall" class="checkall2" /></th>
+                        <th class="head0 attachement">id</th>
+                        <th class="head1">标题</th>
+                        <th class="head0">内容</th>
+                        <th class="head1">分数</th>
+                        <th class="head0">类型</th>
+                        <th class="head1">选择</th>
+                        <th class="head0">答案</th>
+                    </tr>
+                    </tfoot>
+                    <tbody id="recodelist">
+                    </tbody>
+                </table>
+            </div>
+            <div>
+                <input id="recode" th:value="${recode}" type="hidden"/>
+            </div>
+        </div><!--contentwrapper-->
+
+    </div><!--centercontent-->
+
+    
+</div><!--bodywrapper-->
+
+<script type="text/javascript">
+    $(function () {
+        //获取url中的参数
+        function getQueryString(name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i"); // 匹配目标参数
+            var result = window.location.search.substr(1).match(reg); // 对querystring匹配目标参数
+            if (result != null) {
+                return decodeURIComponent(result[2]);
+            } else {
+                return null;
+            }
+        }
+        function timeStamp2String(time){
+            var datetime = new Date();
+            datetime.setTime(time);
+            var year = datetime.getFullYear();
+            var month = datetime.getMonth() + 1 < 10 ? "0" + (datetime.getMonth() + 1) : datetime.getMonth() + 1;
+            var date = datetime.getDate() < 10 ? "0" + datetime.getDate() : datetime.getDate();
+            var hour = datetime.getHours()< 10 ? "0" + datetime.getHours() : datetime.getHours();
+            var minute = datetime.getMinutes()< 10 ? "0" + datetime.getMinutes() : datetime.getMinutes();
+            var second = datetime.getSeconds()< 10 ? "0" + datetime.getSeconds() : datetime.getSeconds();
+            return year + "-" + month + "-" + date+" "+hour+":"+minute+":"+second;
+        }
+        function dateDif(startdata, enddate){
+            var date = enddate - startdata;
+            var days    = date / 1000 / 60 / 60 / 24;
+            var daysRound   = Math.floor(days);
+            var hours    = date/ 1000 / 60 / 60 - (24 * daysRound);
+            var hoursRound   = Math.floor(hours);
+            var minutes   = date / 1000 /60 - (24 * 60 * daysRound) - (60 * hoursRound);
+            var minutesRound  = Math.floor(minutes);
+            var seconds   = date/ 1000 - (24 * 60 * 60 * daysRound) - (60 * 60 * hoursRound) - (60 * minutesRound);
+            var secondsRound  = Math.floor(seconds);
+            var time = ((daysRound==0?"": (daysRound+"天"))+(hoursRound==0?"":(hoursRound +"时"))+(minutesRound==0?"":(minutesRound+"分"))+secondsRound+"秒");
+            return time;
+        }
+        var dataList,totalList,pageindex=1,pagesize=100,pagenum=0;
+        $("#recodelist").html("<tr><td colspan='11' id='adtag' style='text-align: center'>加载中</td></tr>")
+        var i=0;
+        var intObj= setInterval(function () {
+            i++;
+            $("#adtag").text(i==0?"数据正在加载中。":(i==1?"数据正在加载中。。":"数据正在加载中。。。"))
+            i=i>2?0:i;
+        },1000)
+        // $.ajax({
+        //     url: "/admin/getreportlist",data:{status:1}, success: function (result) {
+        //         if (result && result.code == 1 && result.data) {
+        //             dataList=totalList=result.data;
+        //             pagenum=dataList.length;
+        //             page(pageindex);
+        //             clearInterval(intObj);
+        //         }
+        //     }
+        // });
+        //console.log($("#recode").val())
+        var dataList=JSON.parse($("#recode").val())
+        page()
+        function page() {
+            $("#recodelist").empty();
+            var start=(pageindex-1)*pagesize;
+            var end=pageindex*pagesize;
+            var size=parseInt(pagenum/pagesize)+1
+            $(".pageinfo").text("1-"+size+" of "+pagenum)
+            dataList.forEach(function (item,index) {
+                if(index>=start&&index<end){
+                    var unread = (index % 2 == 0 ? "unread" : "");
+                    bind(item, unread);
+                }
+            })
+        }
+        $(".next").click(function () {
+            pageindex+=(pageindex*pagesize)>pagenum?0:1;
+            page();
+        })
+        $(".prev").click(function () {
+            pageindex-=pageindex<=1?0:1;
+            page();
+        });
+        function bind(data,unread) {
+            var userhtml="<tr class=\""+unread+"\">\n" +
+                "                            <td class=\"aligncenter\"><input type=\"checkbox\" name=\"\" /></td>\n" +
+                "                            <td class=\"aligncenter\">{id}</td>\n" +
+                "                            <td>{title}</td>\n" +
+                "                            <td>{content}</td>\n" +
+                "                            <td>{score}</td>\n" +
+                "                            <td>{type}</td>\n" +
+                "                            <td>{choose}</td>\n" +
+                "                            <td>{answer}</td>\n" +
+                "                        </tr>";
+            userhtml=userhtml.replace("{id}",data.id);
+            userhtml=userhtml.replace("{title}",data.title);
+            userhtml=userhtml.replace("{content}",data.content);
+            userhtml=userhtml.replace("{score}",data.score);
+            userhtml=userhtml.replace("{type}",data.type);
+            userhtml=userhtml.replace("{answer}",data.answer);
+            userhtml = userhtml.replace("{choose}", data.choose);
+            $("#recodelist").append(userhtml)
+        }
+    })
+</script>
+</body>
+</html>
