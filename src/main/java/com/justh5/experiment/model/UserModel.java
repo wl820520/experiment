@@ -23,6 +23,15 @@ public class UserModel implements Serializable{
     private Integer classid;
     private String classname;
     private Long logintime;
+    private String pdf;
+
+    public String getPdf() {
+        return pdf;
+    }
+
+    public void setPdf(String pdf) {
+        this.pdf = pdf;
+    }
 
     public Long getLogintime() {
         return logintime;

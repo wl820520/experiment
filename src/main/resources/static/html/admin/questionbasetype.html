@@ -1,0 +1,202 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>实验台管理--实验管理</title>
+<link rel="stylesheet" href="/html/admin/css/style.default.css" type="text/css" />
+<!--<script type="text/javascript" src="js/plugins/jquery-1.7.min.js"></script>-->
+<!--<script type="text/javascript" src="js/plugins/jquery-ui-1.8.16.custom.min.js"></script>-->
+<!--<script type="text/javascript" src="js/plugins/jquery.cookie.js"></script>-->
+<!--<script type="text/javascript" src="js/plugins/colorpicker.js"></script>-->
+<!--<script type="text/javascript" src="js/plugins/jquery.jgrowl.js"></script>-->
+<!--<script type="text/javascript" src="js/plugins/jquery.alerts.js"></script>-->
+<!--<script type="text/javascript" src="js/custom/general.js"></script>-->
+<!--<script type="text/javascript" src="js/custom/elements.js"></script>-->
+    <script src="/js/jquery-1.10.2.js"></script>
+<!--[if IE 9]>
+    <link rel="stylesheet" media="screen" href="/html/admin/css/style.ie9.css"/>
+<![endif]-->
+<!--[if IE 8]>
+    <link rel="stylesheet" media="screen" href="/html/admin/css/style.ie8.css"/>
+<![endif]-->
+<!--[if lt IE 9]>
+	<!--<script src="js/plugins/css3-mediaqueries.js"></script>-->
+<![endif]-->
+</head>
+
+<body class="withvernav">
+<div class="bodywrapper">
+    <div th:include="html/admin/inner :: copyheader ('experiment')"></div>
+
+    <div class="centercontent">
+
+        <div class="pageheader">
+            <h1 class="pagetitle">实验管理</h1>
+            <ul class="hornav">
+                <li class="current"><a>基础实验类型管理</a></li>
+            </ul>
+        </div><!--pageheader-->
+
+        <div id="contentwrapper" class="contentwrapper">
+
+            <div id="inbox" class="subcontent">
+
+                <div class="msghead">
+                    <ul class="msghead_menu">
+                        <li class="marginleft5">类型字段：<input id="typename" type="text" placeholder="version"/></li>
+                        <li class="marginleft5">类型名称：<input id="typetitle" type="text" placeholder="版本"/></li>
+                        <li class="marginleft5">类型：<select id="seletype"><option value="0">值类型</option><option value="1">试题类型</option></select></li>
+                        <li class="marginleft5" id="val">值：<input type="text" value=""/></li>
+                        <li class="right"><input type="button" value="添加类型" id="addtype"/></li>
+                    </ul>
+                    <span class="clearall"></span>
+                </div><!--msghead-->
+
+                <table cellpadding="0" cellspacing="0" border="0" class="stdtable mailinbox">
+                    <colgroup>
+                        <col class="con1" width="4%"/>
+                        <col class="con0" width="15%" />
+                        <col class="con1" width="15%"/>
+                        <col class="con0" width="15%"/>
+                        <col class="con1" width="15%"/>
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th width="20" class="head1 aligncenter"><input type="checkbox" name="checkall" class="checkall" /></th>
+                        <th class="head0 attachement">id</th>
+                        <th class="head1">实验类型</th>
+                        <th class="head0">实验名称</th>
+                        <th class="head0">试题类型</th>
+                        <th class="head0">值</th>
+                        <th class="head0">管理试题</th>
+                        <th class="head0">操作</th>
+                    </tr>
+                    </thead>
+                    <tfoot>
+                    <tr>
+                        <th class="head1 aligncenter"><input type="checkbox" name="checkall" class="checkall2" /></th>
+                        <th class="head0 attachement">id</th>
+                        <th class="head1">实验类型</th>
+                        <th class="head0">实验名称</th>
+                        <th class="head0">试题类型</th>
+                        <th class="head0">值</th>
+                        <th class="head0">管理试题</th>
+                        <th class="head0">操作</th>
+                    </tr>
+                    </tfoot>
+                    <tbody id="userlist">
+                        <tr th:each="product:${qlist}">
+                            <td class="aligncenter"><input type="checkbox" name="" /></td>
+                            <td type="id" th:text="${product.id}">1</td>
+                            <td type="title" th:text="${product.title}">Red Chair</td>
+                            <td type="name" th:text="${product.name}"></td>
+                            <td type="type" th:text="${product.type==0?'值类型':'试题类型'}"></td>
+                            <td th:text="${product.value}"></td>
+                            <td><a t='checkbase' class="btn btn4 btn_link"></a></td>
+                            <td><a t='update' class="btn btn4 btn_link"></a><a t='del' class="btn btn4 btn_trash"></a></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div><!--contentwrapper-->
+
+    </div><!--centercontent-->
+
+    
+</div><!--bodywrapper-->
+
+<script type="text/javascript">
+    $(function () {
+        var id=0;
+        $("#seletype").bind("change",function () {
+            console.log("change")
+            if($(this).val()=="0") {
+                $("#val").show();
+            }else{
+                $("#val").hide();
+            }
+        })
+        $("#addtype").click(function () {
+            postdata(id);
+        })
+        //获取url中的参数
+        function getQueryString(name) {
+            var reg = new RegExp("(^|&)" + name + "=([^&]*)(&|$)", "i"); // 匹配目标参数
+            var result = window.location.search.substr(1).match(reg); // 对querystring匹配目标参数
+            if (result != null) {
+                return decodeURIComponent(result[2]);
+            } else {
+                return null;
+            }
+        }
+
+        function postdata(id) {
+
+            if($("#typename").val()==""||$("#typetitle").val()==""){
+                alert("数据不能为空")
+                return
+            }
+            $.ajax({
+                url:"/admin/addquestionbasetype",
+                type:"post",
+                data:JSON.stringify({
+                    id:id,
+                    baseid:getQueryString("id"),
+                    typename:$("#typename").val(),
+                    typetitle:$("#typetitle").val(),
+                    val:$("#val").val(),
+                    type:$("#seletype").val()
+                }),
+                contentType : 'application/json',
+                processData:false,
+                success:function(data){
+                    console.log(data);
+                    if(data.code==1){
+                        location.href=location.href
+                    }else{
+                        alert(data.msg)
+                    }
+                }
+            });
+        }
+        function bindclick() {
+            $("a[t='del']").click(function () {
+                if(confirm("确定删除？")) {
+                    var aid = $(this).parent().parent().find("td[type='id']").html()
+                    $.ajax({
+                        url: "/admin/delquestionbasetype", data: {id: aid}, success: function (result) {
+                            if (result && result.code == 1) {
+                                alert("删除成功");
+                                location.href = location.href;
+                            } else {
+                                alert("删除失败")
+                            }
+                        }
+                    });
+                }
+            })
+            $("a[t='update']").click(function () {
+                var json = $(this).parent().parent()
+                //console.log(json.html())
+                $("#typetitle").val(json.find("td[type='title']").html())
+                $("#typename").val(json.find("td[type='name']").html())
+                id=json.find("td[type='id']").html()
+            })
+
+            $("a[t='checkbase']").click(function () {
+                var json = $(this).parent().parent()
+                var type=json.find("td[type='type']").html()
+                if(type!="0"){
+                    location.href="/admin/questionlist?id="+json.find("td[type='id']").html()
+                }else{
+                    alert("值类型不需要管理试题")
+                }
+            })
+        }
+        bindclick()
+    });
+</script>
+</body>
+</html>

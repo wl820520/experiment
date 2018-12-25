@@ -236,10 +236,11 @@ public class HTTPUtil {
             for (Map.Entry<String,MultipartFile> multipartFile : multipartFileMap.entrySet()) {
                 multipartEntityBuilder.addBinaryBody(
                         //文件的参数名(不是文件名)
-                        multipartFile.getKey(),
+                        "file",
                         //文件流
-                        multipartFile.getValue().getInputStream()
+                        multipartFile.getValue().getInputStream(),ContentType.DEFAULT_BINARY,multipartFile.getKey()
                 );
+
                 logger.info("文件名{}",multipartFile.getValue().getOriginalFilename());
             }
         }
@@ -248,10 +249,12 @@ public class HTTPUtil {
             for (Map.Entry<String, String> param : paramsMap.entrySet()){
                 StringBody sb = new StringBody(param.getValue(), ContentType.APPLICATION_FORM_URLENCODED);
                 multipartEntityBuilder.addPart(param.getKey(), sb);
+
             }
         }
         //发送请求
         HttpEntity httpEntity = multipartEntityBuilder.build();
+
         httpPost.setEntity(httpEntity);
 
         return getHttpResult(httpPost);

@@ -37,6 +37,7 @@
             <ul class="hornav">
                 <li><a href="/admin/report">记录管理</a></li>
                 <li class="current"><a>旧记录管理</a></li>
+                <li><a href="/admin/output">导出记录</a></li>
             </ul>
         </div><!--pageheader-->
 
@@ -271,6 +272,8 @@
         $("a[t='update']").click(function () {
             try {
                 var id = $(this).attr("val")
+                location.href="/admin/recode?id="+id;
+                return
                 $.ajax({
                     url: "/admin/getExAnswerJsonValue", data: {id: id}, success: function (result) {
                         if (result && result.code == 1) {

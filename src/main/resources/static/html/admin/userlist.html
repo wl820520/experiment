@@ -32,6 +32,7 @@
             <ul class="hornav">
                 <li class="current"><a>学生管理</a></li>
                 <li><a id="add" href="/admin/adduser">添加学生</a></li>
+                <li><a href="/admin/compereuserface">识别学生</a></li>
             </ul>
         </div><!--pageheader-->
 
@@ -69,6 +70,7 @@
                         <th class="head0">班级</th>
                         <th class="head1">图片</th>
                         <th class="head0">操作</th>
+                        <th class="head1">考试成绩</th>
                     </tr>
                     </thead>
                     <tfoot>
@@ -81,6 +83,7 @@
                         <th class="head0">班级</th>
                         <th class="head1">图片</th>
                         <th class="head0">操作</th>
+                        <th class="head1">考试成绩</th>
                     </tr>
                     </tfoot>
                     <tbody id="userlist">
@@ -167,11 +170,14 @@
                 "                            <td class=\"date\">{classname}</td>\n" +
                 "                            <td class=\"attachment\"><img width='100px' height='100px' src='{pic}' /></td>\n" +
                 "                            <td class=\"date\"><a val='{id}' t='update' class=\"btn btn4 btn_link\"></a><a val='{id}' t='del' class=\"btn btn4 btn_trash\"></a></td>\n" +
+                "                            <td class=\"date\"><a val='{pdf}' t='read' class=\"btn btn4 btn_link\">浏览</a><a val='{pdf}' t='load' class=\"btn btn4 btn_link\">下载</a></td>\n" +
                 "                        </tr>";
             userhtml=userhtml.replace("{id}",data.id)
             userhtml=userhtml.replace("{id}",data.id)
             userhtml=userhtml.replace("{id}",data.id)
             userhtml=userhtml.replace("{usercode}",data.usercode)
+            userhtml=userhtml.replace("{pdf}",data.pdf)
+            userhtml=userhtml.replace("{pdf}",data.pdf)
             userhtml=userhtml.replace("{pic}","http://pic.justh5.com"+data.facepic)
             userhtml=userhtml.replace("{username}",data.username)
             userhtml=userhtml.replace("{classname}",data.classname)
@@ -179,6 +185,16 @@
             $("#userlist").append(userhtml)
         }
         function bindclick() {
+            $("a[t='read']").each(function () {
+                if(!$(this).attr("val")||$(this).attr("val")==""||$(this).attr("val")=="undefined"){
+                    $(this).hide()
+                }
+            })
+            $("a[t='load']").each(function () {
+                if(!$(this).attr("val")||$(this).attr("val")==""||$(this).attr("val")=="undefined"){
+                    $(this).hide()
+                }
+            })
             $("a[t='del']").click(function () {
                 console.log($(this).attr("val"))
                 if(confirm("确定删除？")) {
@@ -199,6 +215,14 @@
             $("a[t='update']").click(function () {
                 var id = $(this).attr("val")
                 location.href="/admin/adduser?id="+id;
+            })
+            $("a[t='read']").click(function () {
+                var pdf = $(this).attr("val")
+                location.href="/admin/readpdf?usercode="+pdf.replace('.pdf','')+"&online=1";
+            })
+            $("a[t='load']").click(function () {
+                var pdf = $(this).attr("val")
+                location.href="/admin/readpdf?usercode="+pdf.replace('.pdf','');
             })
         }
     })

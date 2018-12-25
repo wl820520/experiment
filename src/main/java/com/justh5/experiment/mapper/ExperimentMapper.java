@@ -28,7 +28,8 @@ public interface ExperimentMapper {
     void updateUser(@Param("userModel") UserModel userModel);
     @Select("update `user` set logintime = #{logintime} where id=#{id}")
     void loginUser(@Param("logintime") Long logintime,@Param("id") Integer id);
-
+    @Select("update `user` set pdf = #{path} where id=#{id}")
+    void updatePDFPath(@Param("path") String path,@Param("id") Integer id);
 
     @Select("select id,main_type,content,title,substring(json_value,1,100),create_time from `ex_main` where isdelete = 0 ")
     List<ExMainEntity> getExMainList();
@@ -73,7 +74,7 @@ public interface ExperimentMapper {
     @Select("insert into `ex_answer` (main_id,user_id,station_id,score,answer,create_time,end_time,isdelete,isaddscore)VALUES(#{exAnswerEntity.main_id},#{exAnswerEntity.user_id},#{exAnswerEntity.station_id},#{exAnswerEntity.score},#{exAnswerEntity.answer},#{exAnswerEntity.create_time},#{exAnswerEntity.end_time},0,#{exAnswerEntity.isaddscore})")
     void insertExAnswerEntity(@Param("exAnswerEntity") ExAnswerEntity exAnswerEntity);
 
-    @Select("select a.id,a.main_id,a.user_id,a.station_id,a.score,a.create_time,a.end_time,a.isaddscore,b.content mainName,b.title mainTitle,c.ex_name stationName,d.username userName from `ex_answer` a LEFT JOIN ex_main b on a.main_id=b.id LEFT JOIN ex_station c on a.station_id=c.id LEFT JOIN `user` d on a.user_id=d.id where a.isdelete=0 and a.status=#{status} order by  a.id desc")
+    @Select("select a.id,a.main_id,b.main_type,a.user_id,d.usercode,a.station_id,a.score,a.create_time,a.end_time,a.isaddscore,b.content mainName,b.title mainTitle,c.ex_name stationName,d.username userName from `ex_answer` a LEFT JOIN ex_main b on a.main_id=b.id LEFT JOIN ex_station c on a.station_id=c.id LEFT JOIN `user` d on a.user_id=d.id where a.isdelete=0 and a.status=#{status} order by  a.id desc")
     List<ExAnswerEntity> getExAnswerEntityList(@Param("status")Integer status);
     @Select("select answer from `ex_answer` where id= #{id} ")
     String getExAnswerJsonValue(@Param("id")Integer id);
@@ -94,4 +95,29 @@ public interface ExperimentMapper {
     void updateClass(@Param("exClassEntity") ExClassEntity exClassEntity);
     @Select("update `ex_class` set isdelete = 1 where id=#{id}")
     void delClass(@Param("id")Integer id);
+
+
+    @Select("select *from `ex_questionbasetype` where isdelete=0 and main_id=#{id}")
+    List<ExQuestionBaseTypeEntity> getExQuestionBaseTypeList(@Param("id")Integer id);
+    @Select("insert into `ex_questionbasetype` (main_id,name,title,type,value,isdelete)VALUES(#{exQuestionBaseTypeEntity.main_id},#{exQuestionBaseTypeEntity.name},#{exQuestionBaseTypeEntity.title},#{exQuestionBaseTypeEntity.type},#{exQuestionBaseTypeEntity.value},0)")
+    void insertExQuestionBaseType(@Param("exQuestionBaseTypeEntity") ExQuestionBaseTypeEntity exQuestionBaseTypeEntity);
+    @Select("update `ex_questionbasetype` set isdelete = 1 where id=#{id}")
+    void delExQuestionBaseType(@Param("id")Integer id);
+    @Select("update `ex_questionbasetype` set name=#{exQuestionBaseTypeEntity.name},title=#{exQuestionBaseTypeEntity.title},type=#{exQuestionBaseTypeEntity.type},value=#{exQuestionBaseTypeEntity.value} where id=#{exQuestionBaseTypeEntity.id}")
+    void updateExQuestionBaseType(@Param("exQuestionBaseTypeEntity") ExQuestionBaseTypeEntity exQuestionBaseTypeEntity);
+
+
+
+    @Select("select *from `ex_question` where isdelete=0 and base_id=#{base_id} order by sort")
+    List<ExQuestionEntity> getExQuestionList(@Param("base_id")Integer base_id);
+    @Select("insert into `ex_question` (base_id,`maxvalue`,minvalue,type,typename,ispic,score,title,pic,button_text,unit,sort,isdelete)VALUES(#{exQuestionEntity.base_id},#{exQuestionEntity.maxvalue},#{exQuestionEntity.minvalue},#{exQuestionEntity.type},#{exQuestionEntity.typename},#{exQuestionEntity.ispic},#{exQuestionEntity.score},#{exQuestionEntity.title},#{exQuestionEntity.pic},#{exQuestionEntity.button_text},#{exQuestionEntity.unit},#{exQuestionEntity.sort},0)")
+    void insertExQuestion(@Param("exQuestionEntity") ExQuestionEntity exQuestionEntity);
+    @Select("update `ex_question` set isdelete = 1 where id=#{id}")
+    void delExQuestion(@Param("id")Integer id);
+    @Select("update `ex_question` set `maxvalue`=#{exQuestionEntity.maxvalue},minvalue=#{exQuestionEntity.minvalue},type=#{exQuestionEntity.type},typename=#{exQuestionEntity.typename},ispic=#{exQuestionEntity.ispic},score=#{exQuestionEntity.score},title=#{exQuestionEntity.title},pic=#{exQuestionEntity.pic},button_text=#{exQuestionEntity.button_text},unit=#{exQuestionEntity.unit},sort=#{exQuestionEntity.sort} where id=#{exQuestionEntity.id}")
+    void updateExQuestion(@Param("exQuestionEntity") ExQuestionEntity exQuestionEntity);
+
+    @Select("select *from `ex_question_type` where isdelete=0")
+    List<ExQuestionTypeEntity> getExQuestionTypeList();
+
 }

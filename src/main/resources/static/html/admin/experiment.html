@@ -72,7 +72,7 @@
                         <th class="head0 attachement">id</th>
                         <th class="head1">实验类型</th>
                         <th class="head0">实验名称</th>
-                        <th class="head1">内容</th>
+                        <th class="head1">试题内容</th>
                         <th class="head0">操作</th>
                     </tr>
                     </thead>
@@ -82,7 +82,7 @@
                         <th class="head0 attachement">id</th>
                         <th class="head1">实验类型</th>
                         <th class="head0">实验名称</th>
-                        <th class="head1">内容</th>
+                        <th class="head1">试题内容</th>
                         <th class="head0">操作</th>
                     </tr>
                     </tfoot>
@@ -133,16 +133,16 @@
                 "                            <td class=\"aligncenter\">{id}</td>\n" +
                 "                            <td>{experimentname}</td>\n" +
                 "                            <td>{experimenttitle}</td>\n" +
-                "                            <td title='{jsonstr}'>{jsonstrsub}</td>\n" +
+                "                            <td><a val='{id}' t='checkquestion' class=\"btn btn4 btn_link\"></a></td>\n" +
                 "                            <td class=\"date\"><a val='{id}' t='update' class=\"btn btn4 btn_link\"></a><a val='{id}' t='del' class=\"btn btn4 btn_trash\"></a></td>\n" +
                 "                        </tr>";
             userhtml=userhtml.replace("{id}",data.id)
             userhtml=userhtml.replace("{id}",data.id)
             userhtml=userhtml.replace("{id}",data.id)
+            userhtml=userhtml.replace("{id}",data.id)
             userhtml=userhtml.replace("{experimentname}",data.title)
             userhtml=userhtml.replace("{experimenttitle}",data.content)
-            userhtml=userhtml.replace("{jsonstr}",data.json_value)
-            userhtml=userhtml.replace("{jsonstrsub}",data.json_value.substring(0,20))
+            userhtml=userhtml.replace("{jsonstrsub}",data.json_value)
             $("#userlist").append(userhtml)
 
         }
@@ -166,6 +166,10 @@
         $("a[t='update']").click(function () {
                 var id = $(this).attr("val")
                 location.href="/admin/addexperiment?id="+id;
+        })
+        $("a[t='checkquestion']").click(function () {
+            var id = $(this).attr("val")
+            location.href="/admin/questionbasetype?id="+id;
         })
     }
     // $.ajax({url:"/hotel/getCount",success:function(result){

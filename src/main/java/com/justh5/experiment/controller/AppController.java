@@ -331,64 +331,7 @@ public class AppController {
         }
         return uploadFileReq;
     }
-    @RequestMapping(value = "/uploadPdf")
-    public SysResult uploadPdf(HttpServletRequest request){
-        MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
-        List<MultipartFile> fileList = multipartRequest.getFiles("file");
-        if (fileList == null || fileList.size() == 0) {
-            return new SysResult(99, "请提交pdf", null);
-        }
-        MultipartFile file = fileList.get(0);
-        UploadFileReq uploadFileReq=getfilereq(request);
-        if(uploadFileReq!=null&&!StringUtils.isEmpty(uploadFileReq.getUserid())){
-            if (StringUtils.isEmpty(uploadFileReq.getSerialid())) {
-                return new SysResult(99, "平板号不能为空", null);
-            }
-            ExStationEntity exStationEntity = exMainService.getExStationBySerialId(uploadFileReq.getSerialid());
-            if(exStationEntity==null){
-                return new SysResult(99, "未找到绑定平板号", null);
-            }
-            ExOnlineEntity exOnlineEntity = exMainService.getExOnline();
-            UserModel userModel=appService.getUserByUserCode(uploadFileReq.getUserid());
-            if(userModel==null){
-                return new SysResult(99, "未找到绑定用户", null);
-            }
-            Integer count=0;
-            try {
-                if (exOnlineEntity != null && exOnlineEntity.getEx_status().equals(1)) {
 
-                    ExAnswerEntity exAnswerEntity = new ExAnswerEntity();
-                    //exAnswerEntity.setAnswer(answer);
-                    //System.out.println("答案："+answer);
-                    exAnswerEntity.setUser_id(userModel.getId());
-                    exAnswerEntity.setScore(uploadFileReq.getScore());
-                    exAnswerEntity.setMain_id(exStationEntity.getMainid());
-                    exAnswerEntity.setStation_id(exStationEntity.getId());
-                    exAnswerEntity.setCreate_time(userModel.getLogintime());
-                    exAnswerEntity.setEnd_time(new Date().getTime());
-                    count = appService.getCountAnswer();
-                    count=count==null?0:count;
-                    exAnswerEntity.setIsaddscore(0);
-                    if(exOnlineEntity.getBonus_num()!=null&&count<exOnlineEntity.getBonus_num()){
-                        exAnswerEntity.setIsaddscore(1);
-                        exAnswerEntity.setScore(exAnswerEntity.getScore()+2);
-                    }
-                    appService.insertExAnswerEntity(exAnswerEntity);
-                    //System.out.println("提交答案成功");
-                    ResultResp resultResp=new ResultResp();
-                    resultResp.setRank(count+1);
-                    resultResp.setIsbonus(exAnswerEntity.getIsaddscore());
-                    return new SysResult(1, "success", resultResp );
-                } else {
-                    return new SysResult(99, "已经结课，不能提交pdf", null);
-                }
-            }catch (Exception ex){
-                return new SysResult(99, "数据转化异常", null);
-            }
-        }else{
-            return new SysResult(99, "请上传用户信息");
-        }
-    }
     @RequestMapping(value = "/getversion")
     @ResponseBody
     public SysResult getversion() {
@@ -471,6 +414,7 @@ public class AppController {
             oscReq.setType(type);
             oscReq.setTransferType(transferType);
             oscReq.setUserid(userid);
+            //HttpClientUtils.doPost("");
             if (!StringUtils.isEmpty(oscReq.getUserid()) && !StringUtils.isEmpty(oscReq.getSerialid())) {
                 if (socketServer.channelModel != null && socketServer.channelModel.getSocketChannel() != null && socketServer.channelModel.getSocketChannel().isConnected()) {
                     OSCResp oscResp = new OSCResp();
@@ -501,25 +445,26 @@ public class AppController {
                             ex.printStackTrace();
                             System.out.println(ex.getMessage());
                         }
-                        int num=6;
+                        int num=20;
                         if(oscResp.getType().equals("write")){
-                            num=16;//写指令超时时间
+                            num=30;//写指令超时时间
                         }
                         for (int i = 0; i < num; i++) {
-                            Thread.sleep(500);
-                            if(socketServer.channelModel.getOscRespModelList()!=null&&socketServer.channelModel.getOscRespModelList().size()>0){
-                                for(OSCRespModel oscRespModel:socketServer.channelModel.getOscRespModelList()){
-                                    if(!StringUtils.isEmpty(oscRespModel.getDeviceName())&&!StringUtils.isEmpty(oscResp.getDeviceName())&& oscRespModel.getDeviceName().toLowerCase().equals(oscResp.getDeviceName().toLowerCase())){
+                            Thread.sleep(300);
+                            if (socketServer.channelModel.getOscRespModelList() != null && socketServer.channelModel.getOscRespModelList().size() > 0) {
+                                for (OSCRespModel oscRespModel : socketServer.channelModel.getOscRespModelList()) {
+                                    if (!StringUtils.isEmpty(oscRespModel.getDeviceName()) && !StringUtils.isEmpty(oscResp.getDeviceName()) && oscRespModel.getDeviceName().toLowerCase().equals(oscResp.getDeviceName().toLowerCase())) {
                                         if (!StringUtils.isEmpty(oscRespModel.getResp())) {
-                                            if(oscRespModel.getResp().contains("error")){
+                                            if (oscRespModel.getResp().contains("error")) {
                                                 return new SysResult(1, "", oscRespModel.getResp());
                                             }
-                                            String data=exMainService.GetTransferData(oscReq.getTransferType(),oscRespModel.getResp());
-                                            logger.info("获取数据：" + oscRespModel.getResp()+"转换后："+data);
+                                            String data = exMainService.GetTransferData(oscReq.getTransferType(), oscRespModel.getResp());
+                                            logger.info("获取数据：" + oscRespModel.getResp() + "转换后：" + data);
                                             return new SysResult(1, "", data);
                                         }
                                     }
-                                }}
+                                }
+                            }
                         }
                         return new SysResult(99, "获取数据超时", null);
                     } else {

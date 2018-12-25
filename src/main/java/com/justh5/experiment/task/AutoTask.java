@@ -17,7 +17,7 @@ public class AutoTask {
     private SocketServer socketServer;
     @Scheduled(cron = "0 */5 * * * ?")
     public void autoreportfor23hour() {
-            appService.sendSMS();
+        //appService.sendSMS();
     }
     @Scheduled(cron = "*/5 * * * * ?")
     public void autoRunSocket() {

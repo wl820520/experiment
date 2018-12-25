@@ -120,7 +120,6 @@ public class SocketServer {
                 }
                 if (!StringUtils.isEmpty(requestMsg)) {
                     String responseMsg = "已收到客户端的消息:" + requestMsg;
-                    logger.info(responseMsg);
                     if(requestMsg.contains("res|")){
                         String[] resList=requestMsg.split("\\|");
                         if(resList.length>2) {

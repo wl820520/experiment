@@ -16,6 +16,24 @@ public class ExAnswerEntity {
     private Long end_time;
     private Integer isaddscore;
     private String pdf;
+    private String usercode;
+    private Integer main_type;
+
+    public Integer getMain_type() {
+        return main_type;
+    }
+
+    public void setMain_type(Integer main_type) {
+        this.main_type = main_type;
+    }
+
+    public String getUsercode() {
+        return usercode;
+    }
+
+    public void setUsercode(String usercode) {
+        this.usercode = usercode;
+    }
 
     public String getPdf() {
         return pdf;
