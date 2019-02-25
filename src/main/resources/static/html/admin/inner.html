@@ -55,9 +55,9 @@
                 <h4>Juan</h4>
                 <span class="email">youremail@yourdomain.com</span>
                 <ul>
-                    <li><a href="editprofile.html">编辑资料</a></li>
-                    <li><a href="accountsettings.html">账号设置</a></li>
-                    <li><a href="help.html">帮助</a></li>
+                    <li><a href="">编辑资料</a></li>
+                    <li><a href="">账号设置</a></li>
+                    <li><a href="">帮助</a></li>
                     <li><a href="/admin/index">退出</a></li>
                 </ul>
             </div><!--userdata-->
@@ -69,14 +69,7 @@
 <div class="header">
 
     <ul class="headermenu">
-        <li th:class="${current=='statis'?'current':''}"><a href="/admin/statis"><span class="icon icon-flatscreen"></span>首页</a></li>
-        <li th:class="${current=='set'?'current':''}"><a href="/admin/set"><span class="icon icon-pencil"></span>启停设置</a></li>
-        <li th:class="${current=='experiment'?'current':''}"><a href="/admin/experiment"><span class="icon icon-message"></span>实验管理</a></li>
-        <li th:class="${current=='user'?'current':''}"><a href="/admin/user"><span class="icon icon-message"></span>学生管理</a></li>
-        <li th:class="${current=='class'?'current':''}"><a href="/admin/class"><span class="icon icon-message"></span>班级管理</a></li>
-        <li th:class="${current=='report'?'current':''}"><a href="/admin/report"><span class="icon icon-chart"></span>记录管理</a></li>
-        <li th:class="${current=='device'?'current':''}"><a href="/admin/devicelist"><span class="icon icon-chart"></span>设备数据</a></li>
-        <li th:class="${current=='version'?'current':''}"><a href="/admin/version"><span class="icon icon-chart"></span>版本管理</a></li>
+
     </ul>
 
     <div class="headerwidget">
@@ -101,18 +94,40 @@
     </div><!--headerwidget-->
 
 </div><!--header-->
-
+<input id="hidcurrent" type="hidden" th:value="${current}"/>
 <div class="vernav2 iconmenu">
-    <ul>
-        <li><a href="/admin/set" class="gallery">启停设置</a></li>
-        <li><a href="/admin/experiment" class="calendar">实验管理</a></li>
-        <li><a href="/admin/user" class="widgets">学生管理</a></li>
-        <li><a href="/admin/class" class="widgets">班级管理</a></li>
-        <li><a href="/admin/report" class="widgets">记录管理</a></li>
-        <li><a href="/admin/devicelist" class="widgets">设备数据</a></li>
+    <ul id="leftul">
+
     </ul>
     <a class="togglemenu"></a>
     <br /><br />
 </div><!--leftmenu-->
+<script type="text/javascript">
+var isshow=false;
+$(".userinfo").click(function () {
+    if(isshow) {
+        $(".userinfodrop").show();
+    }else{
+        $(".userinfodrop").hide();
+    }
+    isshow=!isshow;
+})
+    var menu=JSON.parse(localStorage["menu"])
+    var heardhtml="";
+    var current=$("#hidcurrent").val();
+    var heardtpl="<li class=\"{current}\"><a href=\"{href}\"><span class=\"icon {icon}\"></span>{name}</a></li>";
+    var lefthtml="";
+    var lefttpl="<li><a href=\"/{path}\" class=\"{lefticon}\">{name}</a></li>";
+    $(menu).each(function (inde,item) {
+        var iscurrent=''
+        if(current==item.path){
+            iscurrent='current'
+        }
+        heardhtml+=heardtpl.replace("{current}",iscurrent).replace("{href}",item.href).replace("{icon}",item.icon).replace("{name}",item.name);
+        lefthtml+=lefttpl.replace("{path}",item.href).replace("{lefticon}",item.lefticon).replace("{name}",item.name);
+    })
+    $(".headermenu").html(heardhtml)
+    $("#leftul").html(lefthtml)
+</script>
 </body>
 </html>

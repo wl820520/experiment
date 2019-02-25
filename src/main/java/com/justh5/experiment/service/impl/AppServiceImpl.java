@@ -17,43 +17,6 @@ import java.util.Map;
 
 @Service
 public class AppServiceImpl implements AppService {
-    @Autowired
-    private ExperimentMapper experimentMapper;
-    @Override
-    public UserModel getUserByUserName(String username) {
-        return experimentMapper.getUserModelByName(username);
-    }
-
-    @Override
-    public UserModel getUserByUserCode(String usercode) {
-        return experimentMapper.getUserModelByCode(usercode);
-    }
-
-    @Override
-    public UserModel getUserByUserSign(String usersign) {
-        return experimentMapper.getUserModelBySign(usersign);
-    }
-
-    @Override
-    public UserModel getUserById(Integer id) {
-        return experimentMapper.getUserModelByID(id);
-    }
-
-    @Override
-    public void insertUser(UserModel userModel) {
-        experimentMapper.insertUser(userModel);
-    }
-
-    @Override
-    public void insertExAnswerEntity(ExAnswerEntity exAnswerEntity) {
-        experimentMapper.insertExAnswerEntity(exAnswerEntity);
-    }
-
-    @Override
-    public Integer getCountAnswer() {
-        return experimentMapper.getCountAnswer();
-    }
-
     @Override
     public void sendSMS() {
         ResponseResult responseResult = new ResponseResult();

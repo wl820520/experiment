@@ -22,7 +22,6 @@ import java.util.Arrays;
 
 @Controller
 @RequestMapping("/wechat")
-@Slf4j
 public class WechatController {
 
     private static Logger log = LogManager.getLogger(WechatController.class);

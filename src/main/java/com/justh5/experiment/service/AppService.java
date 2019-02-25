@@ -6,12 +6,5 @@ import org.springframework.stereotype.Component;
 
 @Component
 public interface AppService {
-    UserModel getUserByUserName(String username);
-    UserModel getUserByUserCode(String usercode);
-    UserModel getUserByUserSign(String usersign);
-    UserModel getUserById(Integer id);
-    void  insertUser(UserModel userModel);
-    void insertExAnswerEntity(ExAnswerEntity exAnswerEntity);
-    Integer getCountAnswer();
     void sendSMS();
 }

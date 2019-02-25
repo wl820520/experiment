@@ -23,7 +23,7 @@
         	
             <div class="logo">
             	<h1 class="logo">实验台.<span>后台管理系统</span></h1>
-				<span class="slogan">仅限管理员账号登录</span>
+				<span class="slogan">管理员账号登录</span>
             </div><!--logo-->
             <div class="nousername">
 				<div class="loginmsg">密码不正确.</div>
@@ -50,6 +50,9 @@
         $("#login").click(function () {
             $.ajax({url:"/admin/login",dataType:"json",data:{username:$("#username").val(),password:$("#password").val()},success:function(result){
                     if(result&&result.code==1) {
+                        console.log(result)
+                        localStorage["token"]=result.msg;
+                        localStorage["menu"]=JSON.stringify(result.data);
                         location.href="/admin/statis";
                         }else{
                         $(".nousername").show();

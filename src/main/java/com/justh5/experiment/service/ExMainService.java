@@ -1,17 +1,18 @@
 package com.justh5.experiment.service;
 
 import com.alibaba.fastjson.JSON;
+import com.justh5.experiment.domain.Cache;
 import com.justh5.experiment.domain.result.JsonResultModel;
 import com.justh5.experiment.mapper.ExperimentMapper;
-import com.justh5.experiment.model.ExAnswerEntity;
-import com.justh5.experiment.model.ExMainEntity;
-import com.justh5.experiment.model.ExOnlineEntity;
-import com.justh5.experiment.model.ExStationEntity;
+import com.justh5.experiment.model.*;
+import com.justh5.experiment.util.CacheManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
+import javax.servlet.http.HttpServletRequest;
 import java.math.BigDecimal;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
@@ -26,83 +27,6 @@ public class ExMainService {
     //{"priview":[{"id":1,"answer":[{"name":"A"}]},{"id":2,"answer":[{"name":"C"},{"name":"D"}]}],"formal":{"previewModels":[{"id":1,"answer":[{"name":"A"}]}],"txtModels":[{"id":2,"value":540}],"tableModels":[{"id":3,"array":[[{"id":1,"value":200},{"id":2,"value":300},{"id":3,"value":200}]]}]}}
     @Autowired
     private ExperimentMapper experimentMapper;
-
-    public List<ExMainEntity> getExMainList() {
-        return experimentMapper.getExMainList();
-    }
-
-    public void delExMain(Integer id) {
-        experimentMapper.delExMain(id);
-    }
-
-    public ExMainEntity getExMainById(Integer id) {
-        return experimentMapper.getExMainById(id);
-    }
-    public ExAnswerEntity getExAnswerById(Integer id){
-        return experimentMapper.getExAnswerById(id);
-    }
-
-    public void loginUser(Integer uid) {
-        experimentMapper.loginUser(new Date().getTime(), uid);
-    }
-
-    public ExStationEntity getExStationById(Integer id) {
-        return experimentMapper.getExStationById(id);
-    }
-
-    public ExStationEntity getExStationBySerialId(String serialid) {
-        return experimentMapper.getExStationBySerialId(serialid);
-    }
-
-    public List<ExStationEntity> getExStationList() {
-        return experimentMapper.getExStationList();
-    }
-
-    public void deleteExStation(Integer id) {
-        experimentMapper.delExStation(id);
-    }
-
-    public void deleteReport(Integer id) {
-        experimentMapper.delExAnswer(id);
-    }
-
-    public void updateVersion(Integer version) {
-        experimentMapper.updateVersion(version);
-    }
-
-    public void updateExStation(ExStationEntity exStationEntity) {
-        experimentMapper.updateExStation(exStationEntity);
-    }
-
-    public void insertExStation(ExStationEntity exStationEntity) {
-        experimentMapper.insertExStation(exStationEntity);
-    }
-
-    public ExOnlineEntity getExOnline() {
-        ExOnlineEntity exOnlineEntity = experimentMapper.getExOnline();
-        return exOnlineEntity;
-    }
-
-    public Integer getUsedAnswer(Integer userid, Integer mainid) {
-        return experimentMapper.getUserdAnswer(userid, mainid);
-    }
-
-    public void updateExMain(ExMainEntity exMainEntity) {
-        experimentMapper.updateExMain(exMainEntity);
-    }
-
-    public void insertExMain(ExMainEntity exMainEntity) {
-        experimentMapper.insertExMain(exMainEntity);
-    }
-
-    public void updateExOnline(Integer bonusNum) {
-        experimentMapper.updateExOnline(bonusNum);
-    }
-
-    public void updateExAnswer() {
-        experimentMapper.updateExAnswer();
-    }
-
     public JsonResultModel getResultData() {
         JsonResultModel jsonResultModel = new JsonResultModel();
         try {
@@ -113,16 +37,6 @@ public class ExMainService {
         }
         return jsonResultModel;
     }
-
-    public List<ExAnswerEntity> getExAnswerEntityList(Integer status) {
-        List<ExAnswerEntity> exAnswerEntities = experimentMapper.getExAnswerEntityList(status);
-        return exAnswerEntities;
-    }
-
-    public String getExAnswerJsonValue(Integer id) {
-        return experimentMapper.getExAnswerJsonValue(id);
-    }
-
 
     public String GetTransferData(String transferType, String resp) {
         String res="0";
@@ -184,5 +98,22 @@ public class ExMainService {
         }
         return res;
     }
-
+    public UserModel getUserInfoByToken(String authToken){
+        if(StringUtils.isEmpty(authToken))return null;
+        Cache cache= CacheManager.getCacheInfo(authToken);
+        if(cache!=null) {
+            UserModel userModel = (UserModel)cache.getValue();
+            if(userModel!=null&&userModel.getId()>0){
+                return userModel;
+            }
+        }
+        return null;
+    }
+    public UserModel getUserInfoBySession(HttpServletRequest request){
+        UserModel userModel=(UserModel) request.getSession().getAttribute("user");
+        if(userModel!=null&&userModel.getId()>0){
+            return userModel;
+        }
+        return null;
+    }
 }

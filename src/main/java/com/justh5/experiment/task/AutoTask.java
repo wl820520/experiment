@@ -22,10 +22,10 @@ public class AutoTask {
     @Scheduled(cron = "*/5 * * * * ?")
     public void autoRunSocket() {
         if(socketServer!=null) {
-            socketServer.startSocketServer(8022);
+            socketServer.startSocketServer(8023);
         }else{
             socketServer=new SocketServer();
-            socketServer.startSocketServer(8022);
+            socketServer.startSocketServer(8023);
         }
     }
 

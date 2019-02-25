@@ -1,16 +1,17 @@
 package com.justh5.experiment.controller;
 
+import com.alibaba.fastjson.JSONObject;
 import com.justh5.experiment.domain.*;
+import com.justh5.experiment.mapper.ExperimentMapper;
 import com.justh5.experiment.model.*;
 import com.justh5.experiment.service.AppService;
 import com.justh5.experiment.service.ExMainService;
 import com.justh5.experiment.socketservice.SocketServer;
+import com.justh5.experiment.util.CacheManager;
 import com.justh5.experiment.util.HTTPUtil;
-import com.youxinpai.common.util.utils.ConvertUtil;
-import com.youxinpai.common.util.utils.JsonUtil;
-import com.youxinpai.common.util.utils.YXPStringUtils;
+import com.justh5.experiment.util.JwtTokenUtil;
 import com.youxinpai.common.util.web.ResponseResult;
-import com.youxinpai.common.util.web.http.HttpClientUtils;
+import org.apache.camel.util.Time;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import com.alibaba.fastjson.JSON;
@@ -18,20 +19,13 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
-
 import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.multipart.MultipartHttpServletRequest;
-import sun.misc.BASE64Decoder;
-
 import javax.servlet.http.HttpServletRequest;
 import java.io.File;
 import java.io.InputStream;
 import java.net.URLDecoder;
-import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 import java.util.*;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 @RestController
 @RequestMapping("app")
@@ -43,6 +37,18 @@ public class AppController {
     private SocketServer socketServer;
     @Autowired
     private ExMainService exMainService;
+    @Autowired
+    private ExperimentMapper experimentMapper;
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
+    @Value("${imgServer}")
+    String imgServer;
+    @Value("${deviceServer}")
+    String deviceServer;
+
+    @Value("${nodeServer}")
+    String nodeServer;
+
     @Value("${versionpath}")
     String versionpath;
     @RequestMapping(value = "/test")
@@ -56,30 +62,6 @@ public class AppController {
         String bb= exMainService.TestTransferData("voltage",aa);
         return new SysResult(0, "", bb);
     }
-    @RequestMapping(value = "/login")
-    public SysResult login(String username, String password,String serialid) {
-        if(StringUtils.isEmpty(username)||StringUtils.isEmpty(password)){
-            return new SysResult(99, "用户名或密码不能为空",null);
-        }
-        if(StringUtils.isEmpty(serialid)){
-            return new SysResult(99, "平板号不能为空",null);
-        }
-        ExStationEntity exStationEntity=exMainService.getExStationBySerialId(serialid);
-        if(exStationEntity==null){
-            logger.error("平板未绑定试题"+serialid);
-            return new SysResult(99, "平板未绑定试题",null);
-        }
-        UserModel userModel=appService.getUserByUserName(username);
-        if(userModel!=null&&userModel.getId()>0&&userModel.getUsername().trim().equals(username.trim())&&userModel.getLoginpwd().trim().equals(password.trim())){
-            ExMainEntity exMainEntity= exMainService.getExMainById(exStationEntity.getMainid());
-            if(exMainEntity!=null) {
-                return new SysResult(1, "success", exMainEntity);
-            }else{
-                return new SysResult(99, "未找到试题",null);
-            }
-        }
-        return new SysResult(99, "用户名或密码错误",null);
-    }
     @RequestMapping(value = "/logincode")
     public SysResult logincode(String usercode,String serialid) {
         if(StringUtils.isEmpty(usercode)){
@@ -88,36 +70,75 @@ public class AppController {
         if(StringUtils.isEmpty(serialid)){
             return new SysResult(99, "平板号不能为空",null);
         }
-        ExStationEntity exStationEntity=exMainService.getExStationBySerialId(serialid);
-        if(exStationEntity==null){
-            logger.error("平板未绑定试题"+serialid);
-            return new SysResult(99, "平板未绑定试题",null);
+        UserModel userModel=experimentMapper.getUserModelByCode(usercode);
+        if(userModel!=null&&userModel.getId()>0){
+            return logindata(userModel,serialid);
         }
-        ExOnlineEntity exOnlineEntity = exMainService.getExOnline();
+        return new SysResult(99, "学号错误",null);
+    }
+    @RequestMapping(value = "/loginface")
+    public SysResult loginface(HttpServletRequest request,String serialid) {
+        MultipartHttpServletRequest multipartRequest = (MultipartHttpServletRequest) request;
+        List<MultipartFile> fileList = multipartRequest.getFiles("pic");
+        if (fileList == null || fileList.size() == 0) {
+            return new SysResult(99, "文件错误");
+        }
+        MultipartFile file = fileList.get(0);
+        try {
+            Map<String, MultipartFile> map = new HashMap<>();
+            map.put("file", file);
+            ResponseResult responseResult = HTTPUtil.doFormFilePostReq(imgServer+"compere", map, null);
+            logger.info("登录识别人脸返回：" + responseResult);
+            if (responseResult.getCode()==200) {
+                JSONObject values = JSON.parseObject(responseResult.getData().toString());
+                if (values.containsKey("code") && values.getInteger("code") == 1) {
+                    Integer uid=values.getInteger("data");
+                    UserModel userModel = experimentMapper.getUserModelByID(uid);
+                    if (userModel != null && userModel.getId() > 0) {
+                        return logindata(userModel,serialid);
+                    }else{
+                        return new SysResult(99, "未找到学生", null);
+                    }
+                } else {
+                    logger.info("人脸识别错误"+responseResult.getMsg());
+                    return new SysResult(99, "人脸识别失败", null);
+                }
+            }
+        }catch (Exception ex){
+            ex.printStackTrace();
+            logger.error("人脸识别异常：",ex);
+        }
+        return new SysResult(99, "人脸登录错误",null);
+    }
+    private SysResult logindata(UserModel userModel,String serialid){
+        LoginResultResp loginResultResp = new LoginResultResp();
+//        if (userModel.getUsertype().equals(3)) {
+//            return new SysResult(99, "请扫码注册后再进行实验", null);
+//        }
+        ExOnlineEntity exOnlineEntity = experimentMapper.getExOnline(userModel.getTeacherid());
         if (exOnlineEntity == null || exOnlineEntity.getEx_status().equals(0)) {
             return new SysResult(99, "未到上课时间点，不能操作系统",null);
         }
-        UserModel userModel=appService.getUserByUserCode(usercode);
-        LoginResultResp loginResultResp=new LoginResultResp();
-        if(userModel!=null&&userModel.getId()>0){
-            Integer usedcount=exMainService.getUsedAnswer(userModel.getId(),exStationEntity.getMainid());
-            if(usedcount!=null&& usedcount>0){
-                return new SysResult(99, "您已提交过该实验",null);
+        loginResultResp.setUserModel(userModel);
+        ExMainAndStationEntity exMainEntity = experimentMapper.getExMainStationBySerialIdAndTeacherId(serialid,userModel.getTeacherid());
+        loginResultResp.setExMainEntity(exMainEntity);
+        if (exMainEntity != null) {
+            Integer usedcount = experimentMapper.getUserdAnswer(userModel.getId(), exMainEntity.getId());
+            if (usedcount != null && usedcount > 0) {
+                return new SysResult(99, "您已提交过该实验", null);
             }
-            if(userModel.getUsertype().equals(3)){
-                return new SysResult(99, "请扫码注册后再进行实验",null);
-            }
-            loginResultResp.setUserModel(userModel);
-            ExMainEntity exMainEntity= exMainService.getExMainById(exStationEntity.getMainid());
-            loginResultResp.setExMainEntity(exMainEntity);
-            exMainService.loginUser(userModel.getId());
-            if(exMainEntity!=null) {
-                return new SysResult(1, "success", loginResultResp);
-            }else{
-                return new SysResult(99, "未找到试题",null);
-            }
+            Cache cache=new Cache();
+            cache.setKey(userModel.getUsername());
+            cache.setValue(userModel);
+            cache.setTimeOut(Time.minutes(5L).toMillis());
+            String token = jwtTokenUtil.generateToken(userModel);
+            CacheManager.putCache(token,cache);
+            loginResultResp.setToken(token);
+            experimentMapper.loginUser(new Date().getTime(),userModel.getId());
+            return new SysResult(1, "success", loginResultResp);
+        } else {
+            return new SysResult(99, "未找到试题，请联系老师绑定试题", null);
         }
-        return new SysResult(99, "学号错误",null);
     }
     @RequestMapping(value = "/loginsign")
     public SysResult loginsign(String loginsign,String serialid) {
@@ -127,14 +148,14 @@ public class AppController {
         if(StringUtils.isEmpty(serialid)){
             return new SysResult(99, "平板号不能为空",null);
         }
-        ExStationEntity exStationEntity=exMainService.getExStationBySerialId(serialid);
-        if(exStationEntity==null){
-            logger.error("平板未绑定试题"+serialid);
-            return new SysResult(99, "平板未绑定试题",null);
-        }
-        UserModel userModel=appService.getUserByUserSign(loginsign);
+        UserModel userModel=experimentMapper.getUserModelBySign(loginsign);
         if(userModel!=null&&userModel.getId()>0){
-            ExMainEntity exMainEntity= exMainService.getExMainById(exStationEntity.getMainid());
+            ExMainAndStationEntity exStationEntity=experimentMapper.getExMainStationBySerialIdAndTeacherId(serialid,userModel.getTeacherid());
+            if(exStationEntity==null){
+                logger.error("平板未绑定试题"+serialid);
+                return new SysResult(99, "平板未绑定试题",null);
+            }
+            ExMainEntity exMainEntity= experimentMapper.getExMainById(exStationEntity.getMain_id());
             if(exMainEntity!=null) {
                 return new SysResult(1, "success", exMainEntity);
             }else{
@@ -154,7 +175,7 @@ public class AppController {
             userModel.setLoginpwd(registReq.getLoginPwd());
             userModel.setUsername(registReq.getUserName());
             userModel.setFacepic(registReq.getUserFace());
-            appService.insertUser(userModel);
+            experimentMapper.insertUser(userModel);
             return new SysResult(1, "success",null);
         }else{
             return new SysResult(99, "参数错误",null);
@@ -162,36 +183,40 @@ public class AppController {
     }
     @RequestMapping(value = "/uploadResult")
     @ResponseBody
-    public SysResult uploadExperiment(Integer score, String userid,String serialid,String newjson) {
+    public SysResult uploadExperiment(HttpServletRequest request,Integer score, String userid,String serialid,String newjson) {
         //req="{\"score\":80,\"userid\":1,\"jsonResultModel\": {\"preview\":[{\"id\":1,\"answer\":[{\"name\":\"A\"}]},{\"id\":2,\"answer\":[{\"name\":\"C\"},{\"name\":\"D\"}]}],\"formal\":{\"previewModels\":[{\"id\":1,\"answer\":[{\"name\":\"A\"}]}],\"txtModels\":[{\"id\":2,\"value\":540}],\"tableModels\":[{\"id\":3,\"tableSubModels\":[[{\"id\":1,\"value\":200},{\"id\":2,\"value\":300},{\"id\":3,\"value\":200}]]}]}}}";
         //JsonResultModel jsonResultModel= exMainService.getResultData();
         try {
-
             if (StringUtils.isEmpty(serialid)) {
                 return new SysResult(99, "平板号不能为空", null);
             }
-            ExStationEntity exStationEntity = exMainService.getExStationBySerialId(serialid);
-            if(exStationEntity==null){
-                return new SysResult(99, "未找到绑定平板号", null);
+            Integer uid=0;
+            if(!StringUtils.isEmpty(userid)){
+                uid=Integer.parseInt(userid);
             }
-            ExOnlineEntity exOnlineEntity = exMainService.getExOnline();
-            UserModel userModel=appService.getUserByUserCode(userid);
+            UserModel userModel=getUserModel(request.getHeader("token").toString(),uid);
             if(userModel==null){
-                return new SysResult(99, "未找到绑定用户", null);
+                return new SysResult(99, "token失效或用户id不能为空", null);
             }
+            ExMainAndStationEntity exStationEntity = experimentMapper.getExMainStationBySerialIdAndTeacherId(serialid,userModel.getTeacherid());
+            if(exStationEntity==null){
+                return new SysResult(99, "平板号未绑定实验台"+serialid, null);
+            }
+            ExOnlineEntity exOnlineEntity = experimentMapper.getExOnline(userModel.getTeacherid());
             Integer count=0;
             if (exOnlineEntity != null && exOnlineEntity.getEx_status().equals(1)) {
                 ExAnswerEntity exAnswerEntity = new ExAnswerEntity();
                 exAnswerEntity.setAnswer(newjson);
+                exAnswerEntity.setTeacher_id(userModel.getTeacherid());
                 exAnswerEntity.setUser_id(userModel.getId());
                 exAnswerEntity.setScore(score);
-                exAnswerEntity.setMain_id(exStationEntity.getMainid());
+                exAnswerEntity.setMain_id(exStationEntity.getMain_id());
                 exAnswerEntity.setStation_id(exStationEntity.getId());
                 exAnswerEntity.setCreate_time(userModel.getLogintime());
                 exAnswerEntity.setEnd_time(new Date().getTime());
-                appService.insertExAnswerEntity(exAnswerEntity);
-                count= appService.getCountAnswer();
-
+                exAnswerEntity.setTeacher_id(userModel.getTeacherid());
+                experimentMapper.insertExAnswerEntity(exAnswerEntity);
+                count= experimentMapper.getCountAnswer();
             } else {
                 return new SysResult(99, "已经结课，不能提交答卷",null);
             }
@@ -205,32 +230,36 @@ public class AppController {
 
     @RequestMapping(value = "/isClassOrver")
     @ResponseBody
-    public SysResult isClassOrver() {
-        ExOnlineEntity exOnlineEntity=exMainService.getExOnline();
-        Integer status=exOnlineEntity==null?0:exOnlineEntity.getEx_status();
-        return new SysResult(1, "success",status);
-    }
-    public String replaceBlank(String str) {
-        String dest = "";
-        if (str!=null) {
-            Pattern p = Pattern.compile("\\s*|\t|\r|\n");
-            Matcher m = p.matcher(str);
-            dest = m.replaceAll("");
+    public SysResult isClassOrver(HttpServletRequest request,Integer uid) {
+        UserModel userModel=getUserModel(request.getHeader("token").toString(),uid);
+        if(userModel!=null) {
+            ExOnlineEntity exOnlineEntity = experimentMapper.getExOnline(userModel.getTeacherid());
+            Integer status = exOnlineEntity == null ? 0 : exOnlineEntity.getEx_status();
+            return new SysResult(1, "success", status);
+        }else{
+            return new SysResult(99, "token失效，请重新登录", null);
         }
-        return dest;
     }
     @RequestMapping(value = "/getEquipmentData")
     @ResponseBody
-    public SysResult getEquipmentData(String userid,String equipmentcode,String serialid) {
+    public SysResult getEquipmentData(HttpServletRequest request,String userid,String equipmentcode,String serialid) {
         try {
-            if (StringUtils.isEmpty(userid)||StringUtils.isEmpty(equipmentcode)) {
-                return new SysResult(99, "用户和设备号不能为空", null);
+            if (StringUtils.isEmpty(equipmentcode)) {
+                return new SysResult(99, "设备号不能为空", null);
             }
             if (StringUtils.isEmpty(serialid)) {
                 return new SysResult(99, "平板号不能为空", null);
             }
+            Integer uid=0;
+            if(!StringUtils.isEmpty(userid)){
+                uid=Integer.parseInt(userid);
+            }
+            UserModel userModel= getUserModel(request.getHeader("token"),uid);
+            if(userModel==null){
+                return new SysResult(99, "未登录或token失效", null);
+            }
             logger.info("获取设备值:userid " + userid+" code "+equipmentcode+" serialid "+serialid);
-            ExStationEntity exStationEntity = exMainService.getExStationBySerialId(serialid);
+            ExMainAndStationEntity exStationEntity = experimentMapper.getExMainStationBySerialIdAndTeacherId(serialid,userModel.getTeacherid());
             if(exStationEntity==null){
                 logger.error("平板未绑定试题"+serialid);
                 return new SysResult(99, "平板未绑定试题",null);
@@ -238,13 +267,13 @@ public class AppController {
             Map<String, Object> params=new HashMap<>();
             params.put("getdevname",exStationEntity.getEx_code());
             params.put("gettype",equipmentcode);
-            String result=  HTTPUtil.httpClientGet("http://123.56.255.65:503/getval",params,"utf-8");
+            String result=  HTTPUtil.httpClientGet(nodeServer+"getval",params,"utf-8");
             logger.info("获取设备信息：dev "+exStationEntity.getEx_code()+"  type"+equipmentcode+"  "+result);
             return new SysResult(1, "success", result);
         }catch (Exception ex){
             ex.printStackTrace();
-            logger.error("提交答卷异常：",ex);
-            return new SysResult(99, "提交答卷异常", null);
+            logger.error("获取设备信息异常：",ex);
+            return new SysResult(99, "获取设备信息异常", null);
         }
 
     }
@@ -261,16 +290,18 @@ public class AppController {
             if (StringUtils.isEmpty(uploadFileReq.getSerialid())) {
                 return new SysResult(99, "平板号不能为空", null);
             }
-            ExStationEntity exStationEntity = exMainService.getExStationBySerialId(uploadFileReq.getSerialid());
+            UserModel userModel=exMainService.getUserInfoByToken(request.getHeader("token").toString());
+            if(userModel==null) {
+                userModel = experimentMapper.getUserModelByCode(uploadFileReq.getUserid());
+                if(userModel==null){
+                    return new SysResult(99, "未找到绑定用户,或token失效", null);
+                }
+            }
+            ExMainAndStationEntity exStationEntity = experimentMapper.getExMainStationBySerialIdAndTeacherId(uploadFileReq.getSerialid(),userModel.getTeacherid());
             if(exStationEntity==null){
                 return new SysResult(99, "未找到绑定平板号", null);
             }
-            ExOnlineEntity exOnlineEntity = exMainService.getExOnline();
-            UserModel userModel=appService.getUserByUserCode(uploadFileReq.getUserid());
-            if(userModel==null){
-                return new SysResult(99, "未找到绑定用户", null);
-            }
-            //System.out.println("上传内容"+JSON.toJSONString(uploadFileReq));
+            ExOnlineEntity exOnlineEntity = experimentMapper.getExOnline(userModel.getTeacherid());
             Integer count=0;
             try {
                 if (exOnlineEntity != null && exOnlineEntity.getEx_status().equals(1)) {
@@ -284,18 +315,18 @@ public class AppController {
                     //System.out.println("答案："+answer);
                     exAnswerEntity.setUser_id(userModel.getId());
                     exAnswerEntity.setScore(uploadFileReq.getScore());
-                    exAnswerEntity.setMain_id(exStationEntity.getMainid());
+                    exAnswerEntity.setMain_id(exStationEntity.getMain_id());
                     exAnswerEntity.setStation_id(exStationEntity.getId());
                     exAnswerEntity.setCreate_time(userModel.getLogintime());
                     exAnswerEntity.setEnd_time(new Date().getTime());
-                    count = appService.getCountAnswer();
+                    count = experimentMapper.getCountAnswer();
                     count=count==null?0:count;
                     exAnswerEntity.setIsaddscore(0);
                     if(exOnlineEntity.getBonus_num()!=null&&count<exOnlineEntity.getBonus_num()){
                         exAnswerEntity.setIsaddscore(1);
                         exAnswerEntity.setScore(exAnswerEntity.getScore()+2);
                     }
-                    appService.insertExAnswerEntity(exAnswerEntity);
+                    experimentMapper.insertExAnswerEntity(exAnswerEntity);
                     //System.out.println("提交答案成功");
                     ResultResp resultResp=new ResultResp();
                     resultResp.setRank(count+1);
@@ -332,10 +363,21 @@ public class AppController {
         return uploadFileReq;
     }
 
+    private UserModel getUserModel(String token,Integer userid){
+        UserModel userModel=exMainService.getUserInfoByToken(token);
+        if(userModel==null) {
+            userModel=experimentMapper.getUserModelByID(userid);
+        }
+        return userModel;
+    }
     @RequestMapping(value = "/getversion")
     @ResponseBody
-    public SysResult getversion() {
-        ExOnlineEntity exOnlineEntity=exMainService.getExOnline();
+    public SysResult getversion(HttpServletRequest request,Integer uid) {
+        UserModel userModel=getUserModel(request.getHeader("token"),uid);
+        if(userModel==null){
+            return new SysResult(99, "token失效");
+        }
+        ExOnlineEntity exOnlineEntity=experimentMapper.getExOnline(userModel.getTeacherid());
         if(exOnlineEntity!=null) {
             return new SysResult(1, "success", exOnlineEntity.getVersion());
         }else{
@@ -369,18 +411,17 @@ public class AppController {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
-        ExOnlineEntity exOnlineEntity=exMainService.getExOnline();
-        if(version!=null&&version>0&&exOnlineEntity!=null) {
-            if(version> exOnlineEntity.getVersion()) {
+        ExVersionEntity exVersionEntity=experimentMapper.getVersion();
+        if(version!=null&&version>0&&exVersionEntity!=null) {
+            if(version> exVersionEntity.getVersion()) {
                 if(uploadapk(file,0)) {
-                    exMainService.updateVersion(version);
-
+                    experimentMapper.updateVersion(version);
                     return new SysResult(1, "success", null);
                 }else{
                     return new SysResult(99, "上传文件失败");
                 }
             }else{
-                return new SysResult(99, "版本号必须大于当前版本号："+exOnlineEntity.getVersion());
+                return new SysResult(99, "版本号必须大于当前版本号："+exVersionEntity.getVersion());
             }
         }else{
             return new SysResult(99, "请输入正确的版本号");
@@ -404,85 +445,24 @@ public class AppController {
     @RequestMapping(value = "/getSOC")
     @ResponseBody
     public SysResult getSOC(String userid,String oSCCOde,String serialid,String type,String transferType) {
-        try {
-            if(StringUtils.isEmpty(userid)||StringUtils.isEmpty(oSCCOde)||StringUtils.isEmpty(serialid)||StringUtils.isEmpty(type)||StringUtils.isEmpty(transferType)){
-                return new SysResult(99, "参数不能为空 userid,oSCCOde,serialid,type,transferType", null);
+        Map<String,Object> map=new HashMap<>();
+        map.put("userid",userid);
+        map.put("oSCCOde",oSCCOde);
+        map.put("serialid",serialid);
+        map.put("type",type);
+        map.put("transferType",transferType);
+        String responseResult =   HTTPUtil.httpClientPost(deviceServer+"admin/getDeviceData",map,null);
+        if (!StringUtils.isEmpty(responseResult)) {
+            JSONObject values = JSON.parseObject(responseResult);
+            if (values.containsKey("code") && values.getInteger("code") == 1) {
+                return new SysResult(99, "", values.getString("data"));
             }
-            OSCReq oscReq=new OSCReq();
-            oscReq.setoSCCOde(oSCCOde);
-            oscReq.setSerialid(serialid);
-            oscReq.setType(type);
-            oscReq.setTransferType(transferType);
-            oscReq.setUserid(userid);
-            //HttpClientUtils.doPost("");
-            if (!StringUtils.isEmpty(oscReq.getUserid()) && !StringUtils.isEmpty(oscReq.getSerialid())) {
-                if (socketServer.channelModel != null && socketServer.channelModel.getSocketChannel() != null && socketServer.channelModel.getSocketChannel().isConnected()) {
-                    OSCResp oscResp = new OSCResp();
-                    oscResp.setType(oscReq.getType());
-                    ExStationEntity exStationEntity = exMainService.getExStationBySerialId(oscReq.getSerialid());
-                    if (exStationEntity != null && !StringUtils.isEmpty(exStationEntity.getEx_osc())) {
-                        oscResp.setDeviceName(exStationEntity.getEx_osc());
-                        oscResp.setInstruct(oscReq.getoSCCOde());
-                        ByteBuffer sBuffer = ByteBuffer.allocate(1024);
-                        String str = JSON.toJSONString(oscResp);
-                        logger.info("发送数据：" + str);
-                        sBuffer = ByteBuffer.allocate(str.getBytes("UTF-8").length);
-                        sBuffer.put(str.getBytes("UTF-8"));
-                        sBuffer.flip();
-                        try {
-                            if (socketServer.channelModel.getSocketChannel().isConnected()) {
-                                logger.info("write buffer");
-                                //socketServer.channelModel.setResp("");
-                                if(socketServer.channelModel.getOscRespModelList()!=null&&socketServer.channelModel.getOscRespModelList().size()>0){
-                                    for(OSCRespModel oscRespModel:socketServer.channelModel.getOscRespModelList()){
-                                        if(!StringUtils.isEmpty(oscRespModel.getDeviceName())&&!StringUtils.isEmpty(oscResp.getDeviceName())&& oscRespModel.getDeviceName().toLowerCase().equals(oscResp.getDeviceName().toLowerCase())){
-                                            oscRespModel.setResp("");
-                                        }
-                                    }}
-                                socketServer.channelModel.getSocketChannel().write(sBuffer);
-                            }
-                        } catch (Exception ex) {
-                            ex.printStackTrace();
-                            System.out.println(ex.getMessage());
-                        }
-                        int num=20;
-                        if(oscResp.getType().equals("write")){
-                            num=30;//写指令超时时间
-                        }
-                        for (int i = 0; i < num; i++) {
-                            Thread.sleep(300);
-                            if (socketServer.channelModel.getOscRespModelList() != null && socketServer.channelModel.getOscRespModelList().size() > 0) {
-                                for (OSCRespModel oscRespModel : socketServer.channelModel.getOscRespModelList()) {
-                                    if (!StringUtils.isEmpty(oscRespModel.getDeviceName()) && !StringUtils.isEmpty(oscResp.getDeviceName()) && oscRespModel.getDeviceName().toLowerCase().equals(oscResp.getDeviceName().toLowerCase())) {
-                                        if (!StringUtils.isEmpty(oscRespModel.getResp())) {
-                                            if (oscRespModel.getResp().contains("error")) {
-                                                return new SysResult(1, "", oscRespModel.getResp());
-                                            }
-                                            String data = exMainService.GetTransferData(oscReq.getTransferType(), oscRespModel.getResp());
-                                            logger.info("获取数据：" + oscRespModel.getResp() + "转换后：" + data);
-                                            return new SysResult(1, "", data);
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                        return new SysResult(99, "获取数据超时", null);
-                    } else {
-                        return new SysResult(99, "未设置设备信息", null);
-                    }
-                } else {
-                    return new SysResult(99, "未连接设备", null);
-                }
-//                return new SysResult(1, "success", null);
-            } else {
-                return new SysResult(99, "参数不能为空", null);
-            }
-        } catch (Exception ex) {
-            logger.error("获取示波器数据异常", ex);
-            System.out.println(ex);
-            return new SysResult(99, "error", null);
+            return new SysResult(99, values.getString("msg"), null);
         }
+        return new SysResult(99, "error", null);
     }
+
+
     private boolean uploadapk(MultipartFile file,Integer type)
     {
         try{
@@ -498,4 +478,36 @@ public class AppController {
         }
         return true;
     }
+
+    @RequestMapping(value = "updateuserpic")
+    @ResponseBody
+    public SysResult updateuserpic(String usercode,String facepic) {
+        try {
+            if (!StringUtils.isEmpty(usercode)) {
+                UserModel userModel1=experimentMapper.getUserModelByCode(usercode);
+                if(userModel1!=null) {
+                    if (!StringUtils.isEmpty(facepic)) {
+                        //if (!responseResult.contains("error")) {
+                        experimentMapper.updateUserFacePic(userModel1.getId(), facepic);
+                        Map<String, Object> map = new HashMap<>();
+                        map.put("usercode", userModel1.getUsercode());
+                        String responseResult = HTTPUtil.httpClientPost(imgServer+"refresh", map, null);
+                        return new SysResult(1, "success", null);
+                        //  }else {
+                        // return new SysResult(99, "图片必须为人脸图片", null);
+                        // }
+                    } else {
+                        return new SysResult(99, "图片不能为空", null);
+                    }
+                }
+            } else {
+                return new SysResult(99, "未找到用户code", null);
+            }
+        } catch (Exception ex) {
+            logger.error("update user pic error", ex);
+            return new SysResult(99, "update error", null);
+        }
+        return new SysResult(1, "success", null);
+    }
+
 }

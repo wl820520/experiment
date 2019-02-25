@@ -141,7 +141,9 @@ public class SocketServer {
                                     OSCRespModel oscRespModel = new OSCRespModel();
                                     oscRespModel.setDeviceName(deviceName);
                                     oscRespModel.setResp(resMsg);
-                                    channelModel.setOscRespModelList(new ArrayList<>());
+                                    if(channelModel.getOscRespModelList()==null||channelModel.getOscRespModelList().size()<=0) {
+                                        channelModel.setOscRespModelList(new ArrayList<>());
+                                    }
                                     channelModel.getOscRespModelList().add(oscRespModel);
                                     logger.info("new channelModel " + resMsg);
                                 }

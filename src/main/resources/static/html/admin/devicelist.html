@@ -60,11 +60,10 @@
                         <col class="con1" width="4%"/>
                         <col class="con0" width="4%" />
                         <col class="con1" width="15%"/>
-                        <col class="con1" width="15%"/>
-                        <col class="con0" width="15%"/>
-                        <col class="con1" width="15%"/>
-                        <col class="con0" width="44%"/>
-                        <col class="con1" width="10%"/>
+                        <col class="con1" width="25%"/>
+                        <col class="con0" width="25%"/>
+                        <col class="con1" width="25%"/>
+                        <col class="con0" width="10%"/>
                     </colgroup>
                     <thead>
                     <tr>
@@ -73,7 +72,6 @@
                         <th class="head1">实验台名称</th>
                         <th class="head0">设备编号</th>
                         <th class="head0">示波器编号</th>
-                        <th class="head1">绑定实验题</th>
                         <th class="head1">绑定平板号</th>
                         <th class="head0">操作</th>
                     </tr>
@@ -85,7 +83,6 @@
                         <th class="head1">实验台名称</th>
                         <th class="head0">设备编号</th>
                         <th class="head0">示波器编号</th>
-                        <th class="head1">绑定实验题</th>
                         <th class="head1">绑定平板号</th>
                         <th class="head0">操作</th>
                     </tr>
@@ -138,7 +135,6 @@
                 "                            <td>{exName}</td>\n" +
                 "                            <td>{exCode}</td>\n" +
                 "                            <td>{exOSC}</td>\n" +
-                "                            <td>{mainName}</td>\n" +
                 "                            <td>{serialid}</td>\n" +
                 "                            <td class=\"date\"><a val='{id}' t='update' class=\"btn btn4 btn_link\"></a><a val='{id}' t='del' class=\"btn btn4 btn_trash\"></a></td>\n" +
                 "                        </tr>";
@@ -148,7 +144,6 @@
             userhtml=userhtml.replace("{exCode}",data.ex_code)
             userhtml=userhtml.replace("{exOSC}",data.ex_osc)
             userhtml=userhtml.replace("{exName}",data.ex_name)
-            userhtml=userhtml.replace("{mainName}",data.mainName)
             userhtml=userhtml.replace("{serialid}",data.serialid)
             $("#userlist").append(userhtml)
         }

@@ -2,10 +2,8 @@ package com.justh5.experiment.model;
 
 import lombok.Data;
 
-import java.io.Serializable;
-
 @Data
-public class ExMainEntity  implements Serializable {
+public class ExMainAndStationEntity {
     private Integer id;
     private Integer uid;
     private String title;
@@ -15,5 +13,10 @@ public class ExMainEntity  implements Serializable {
     private Integer isdelete;
     private Integer main_type;
     private Integer main_id;
-
+    private String ex_name;
+    private String ip_address;
+    private String mainName;
+    private String serialid;
+    private String ex_code;
+    private String ex_osc;
 }

@@ -1,27 +1,15 @@
 package com.justh5.experiment.domain;
 
+import com.justh5.experiment.model.ExExTypeEntity;
 import com.justh5.experiment.model.ExMainEntity;
 import com.justh5.experiment.model.ExOnlineEntity;
+import lombok.Data;
 
 import java.util.List;
 
+@Data
 public class OnlineResp {
-    private List<ExMainEntity> exMainEntities;
+    private List<ExExTypeEntity> exExTypeEntities;
     private ExOnlineEntity exOnlineEntity;
 
-    public List<ExMainEntity> getExMainEntities() {
-        return exMainEntities;
-    }
-
-    public void setExMainEntities(List<ExMainEntity> exMainEntities) {
-        this.exMainEntities = exMainEntities;
-    }
-
-    public ExOnlineEntity getExOnlineEntity() {
-        return exOnlineEntity;
-    }
-
-    public void setExOnlineEntity(ExOnlineEntity exOnlineEntity) {
-        this.exOnlineEntity = exOnlineEntity;
-    }
 }

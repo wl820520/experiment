@@ -88,13 +88,9 @@
 <script type="text/javascript">
     $.ajax({url:"/admin/getOnlineModel",success:function(result){
             if(result&&result.data) {
-                if(result.data.exMainEntities){
-                    var idlist=new Array();
-                    $(result.data.exMainEntities).each(function (index,item) {
-                        if(!idlist.contains(item.main_type)){
-                            $("#experiment").append("<option value='"+item.main_type+"'>"+item.title+"</option>");
-                        }
-                        idlist.push(item.main_type);
+                if(result.data.exExTypeEntities){
+                    $(result.data.exExTypeEntities).each(function (index,item) {
+                        $("#experiment").append("<option value='"+item.id+"'>"+item.experimentname+"</option>");
                     })
                 }
                 if(result.data.exOnlineEntity){

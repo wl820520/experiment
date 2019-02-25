@@ -7,14 +7,14 @@ import com.google.gson.internal.LinkedTreeMap;
 import com.google.gson.reflect.TypeToken;
 import com.justh5.experiment.config.WeChatMpConfig;
 import com.justh5.experiment.domain.*;
+import com.justh5.experiment.domain.CommonHelper;
 import com.justh5.experiment.mapper.ExperimentMapper;
 import com.justh5.experiment.model.*;
 import com.justh5.experiment.service.AdminService;
 import com.justh5.experiment.service.AppService;
 import com.justh5.experiment.service.ExMainService;
 import com.justh5.experiment.socketservice.SocketServer;
-import com.justh5.experiment.util.ExcelUtil;
-import com.justh5.experiment.util.FtpUtil;
+import com.justh5.experiment.util.*;
 import com.justh5.experiment.util.HTTPUtil;
 import com.youxinpai.common.util.web.ResponseResult;
 import com.youxinpai.common.util.web.http.HttpClientUtils;
@@ -22,6 +22,7 @@ import jcifs.UniAddress;
 import jcifs.smb.*;
 import me.chanjar.weixin.common.bean.WxJsapiSignature;
 import me.chanjar.weixin.mp.api.WxMpService;
+import org.apache.camel.util.Time;
 import org.apache.catalina.User;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -55,8 +56,15 @@ public class AdminController {
     private static Logger logger = LogManager.getLogger(AdminController.class);
     @Value("${urlpath}")
     String urlpath;
-    @Value("${faceSacnServer}")
-    String faceSacnServer;
+    @Value("${imgServer}")
+    String imgServer;
+    @Value("${deviceServer}")
+    String deviceServer;
+    @Value("${nodeServer}")
+    String nodeServer;
+
+    @Autowired
+    private JwtTokenUtil jwtTokenUtil;
     @Autowired
     private AdminService adminService;
     @Autowired
@@ -77,15 +85,24 @@ public class AdminController {
     }
 
     @RequestMapping(value = "/login")
-    public SysResult login(String username, String password) {
+    public SysResult login(HttpServletRequest request,String username, String password) {
         if (StringUtils.isEmpty(username) || StringUtils.isEmpty(password)) {
             return new SysResult(99, "用户名或密码不能为空", null);
         }
-        UserModel userModel = adminService.getAdminUser();
+
+        UserModel userModel = experimentMapper.getUserModelByName(username);
         if (userModel != null && userModel.getId() > 0 && userModel.getLoginname().trim().equals(username.trim()) && userModel.getLoginpwd().trim().equals(password.trim())) {
-            return new SysResult(1, "success", null);
+            if(userModel.getRoleid().equals(3)){
+                return new SysResult(99, "学生用户不允许登录后台系统", null);
+            }
+            final String token = jwtTokenUtil.generateToken(userModel);
+            List<MenuEntity> menuEntities=experimentMapper.getMenuListByRole(userModel.getRoleid());
+            request.getSession().setAttribute("user",userModel);
+
+            return new SysResult(1, token, menuEntities);
+        }else{
+            return new SysResult(99, "未找到登录用户", null);
         }
-        return new SysResult(99, "用户名或密码错误", null);
     }
 
     @CrossOrigin
@@ -101,12 +118,16 @@ public class AdminController {
     }
 
     @RequestMapping(value = "getOnlineModel")
-    public SysResult getOnlineModel() {
-        ExOnlineEntity exOnlineEntity = exMainService.getExOnline();
+    public SysResult getOnlineModel(HttpServletRequest request, HttpServletResponse response) {
+        UserModel userModel=exMainService.getUserInfoBySession(request);
+        if(userModel==null){
+            return new SysResult(99, "session失效，请重新登录", null);
+        }
+        ExOnlineEntity exOnlineEntity = experimentMapper.getExOnline(userModel.getId());
         if (exOnlineEntity != null) {
             OnlineResp onlineResp = new OnlineResp();
-            List<ExMainEntity> exMainEntities = exMainService.getExMainList();
-            onlineResp.setExMainEntities(exMainEntities);
+            List<ExExTypeEntity> exExTypeEntities = experimentMapper.getExExTypeList();
+            onlineResp.setExExTypeEntities(exExTypeEntities);
             onlineResp.setExOnlineEntity(exOnlineEntity);
             return new SysResult(1, "", onlineResp);
         } else {
@@ -115,10 +136,14 @@ public class AdminController {
     }
 
     @RequestMapping(value = "updateStatus")
-    public SysResult updateStatus(Integer bonusNum, Integer status) {
-        exMainService.updateExOnline(bonusNum);
+    public SysResult updateStatus(HttpServletRequest request,Integer bonusNum, Integer status) {
+        UserModel userModel=exMainService.getUserInfoBySession(request);
+        if(userModel==null){
+            return new SysResult(99, "token失效，请重新登录", null);
+        }
+        experimentMapper.updateExOnline(bonusNum,userModel.getId());
         if (status.equals(1)) {
-            exMainService.updateExAnswer();
+            experimentMapper.updateExAnswer(userModel.getTeacherid());
         }
         return new SysResult(1, "", null);
     }
@@ -131,9 +156,13 @@ public class AdminController {
 
     @CrossOrigin
     @RequestMapping("version")
-    public Object version(ModelAndView modelAndView) {
+    public Object version(HttpServletRequest request,HttpServletResponse response,ModelAndView modelAndView) throws Exception {
         modelAndView.setViewName("html/admin/version");
-        ExOnlineEntity exOnlineEntity = exMainService.getExOnline();
+        UserModel userModel=exMainService.getUserInfoBySession(request);
+        if(userModel==null){
+            response.sendRedirect("/admin/index");
+        }
+        ExOnlineEntity exOnlineEntity = experimentMapper.getExOnline(userModel.getId());
         if (exOnlineEntity != null) {
             modelAndView.addObject("version", exOnlineEntity.getVersion());
         }
@@ -142,13 +171,13 @@ public class AdminController {
 
     @RequestMapping(value = "getExperimentList")
     public SysResult getExperimentList() {
-        List<ExMainEntity> exMainEntities = exMainService.getExMainList();
+        List<ExMainEntity> exMainEntities = experimentMapper.getExMainList();
         return new SysResult(1, "", exMainEntities);
     }
 
     @RequestMapping(value = "delexperiment")
     public SysResult delexperiment(Integer id) {
-        exMainService.delExMain(id);
+        experimentMapper.delExMain(id);
         return new SysResult(1, "", null);
     }
 
@@ -160,15 +189,53 @@ public class AdminController {
         if (!StringUtils.isEmpty(idstr)) {
             Integer id = Integer.parseInt(idstr);
             if (id > 0) {
-                ExMainEntity exMainEntity = exMainService.getExMainById(id);
+                ExMainEntity exMainEntity = experimentMapper.getExMainById(id);
                 if (exMainEntity != null) {
                     modelAndView.addObject("exMainEntity", JSON.toJSONString(exMainEntity));
                 }
             }
         }
+        List<ExExTypeEntity> exExTypeEntities=experimentMapper.getExExTypeList();
+        modelAndView.addObject("exExTypeEntities",exExTypeEntities);
+        return modelAndView;
+    }
+    @CrossOrigin
+    @RequestMapping("extype")
+    public Object extype(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
+        modelAndView.setViewName("html/admin/extypemanager");
+        List<ExExTypeEntity> exExTypeEntities=experimentMapper.getExExTypeList();
+        modelAndView.addObject("exExTypeEntities",exExTypeEntities);
         return modelAndView;
     }
 
+    @CrossOrigin
+    @RequestMapping("delextype")
+    public Object delextype(HttpServletRequest request,Integer id) {
+        UserModel userModel=exMainService.getUserInfoBySession(request);
+        if(userModel==null){
+            return new SysResult(99, "登录失效，请重新登录", null);
+        }
+        if (id != null && id > 0) {
+            experimentMapper.delExType(id);
+            return new SysResult(1, "success", null);
+        } else {
+            return new SysResult(99, "参数不正确", null);
+        }
+    }
+    @CrossOrigin
+    @RequestMapping("updateextype")
+    public Object updateextype(HttpServletRequest request,Integer id,String experimentname) {
+        UserModel userModel=exMainService.getUserInfoBySession(request);
+        if(userModel==null){
+            return new SysResult(99, "登录失效，请重新登录", null);
+        }
+        if (id != null && id > 0) {
+            experimentMapper.updateExType(id,experimentname);
+        } else {
+            experimentMapper.insertExType(experimentname);
+        }
+        return new SysResult(1, "success", null);
+    }
     @RequestMapping(value = "uploadpic")
     @ResponseBody
     public SysResult uploadpic(HttpServletRequest request) throws SQLException {
@@ -182,13 +249,16 @@ public class AdminController {
         String filename =file.getOriginalFilename();// CommonHelper.getRandomString(18) + ".jpg";
         try {
 
-            String picpath = urlpath + returnpath;
-            savePic(file.getInputStream(), picpath, filename);
-            //FtpUtil.uploadFile(filename,picpath,file.getInputStream());
+            String picpath = urlpath + returnpath+"/";
+//            savePic(file.getInputStream(), picpath, filename);
+            if(uploadFile(file,picpath,filename,false)) {
+                return new SysResult(1, "success", "/experiment/" + returnpath + "/" + filename);
+            }
         } catch (Exception ex) {
-
+            logger.error("上传图片失败",ex);
+            ex.printStackTrace();
         }
-        return new SysResult(1, "success", "/experiment/" + returnpath + "/" + filename);
+        return new SysResult(99, "error upload fail");
     }
     @RequestMapping(value = "uploadface")
     @ResponseBody
@@ -204,11 +274,18 @@ public class AdminController {
         try {
 
             String picpath = urlpath + returnpath;
-            savePic(file.getInputStream(), picpath, filename);
+            //savePic(file.getInputStream(), picpath, filename);
+            picpath="/usr/local/src/pic/experiment/"+returnpath;
+            if(uploadFile(file,picpath+"/",filename,true)) {
+                return new SysResult(1, "success", "/experiment/" + returnpath + "/" + filename);
+            }else{
+                return new SysResult(99, "非人脸图片", null);
+            }
         } catch (Exception ex) {
-
+            ex.printStackTrace();
+            logger.error("上传图片异常：",ex);
         }
-        return new SysResult(1, "success", "/experiment/" + returnpath + "/" + filename);
+        return new SysResult(99, "error upload face fail", null);
     }
     @RequestMapping(value = "uploadImgBase64")
     @ResponseBody
@@ -293,22 +370,48 @@ public class AdminController {
             ex.printStackTrace();
         }
         if(!StringUtils.isEmpty(usercode)){
-            UserModel userModel=appService.getUserByUserCode(usercode);
+            UserModel userModel=experimentMapper.getUserModelByCode(usercode);
             if(userModel==null){
                 return new SysResult(99, "未找到绑定用户", null);
             }
-            Integer count=0;
+//            Integer count=0;
             try {
-                InputStream in= file.getInputStream();
-                savePic(in,urlpath+"/pdf/",usercode+".pdf");
-                experimentMapper.updatePDFPath(usercode+".pdf",userModel.getId());
-                return new SysResult(1, "success", "");
+//                InputStream in= file.getInputStream();
+//                savePic(in,urlpath+"/pdf/",usercode+".pdf");
+                //改为单服务上传文件
+                if(uploadFile(file,urlpath+"/pdf/",usercode+".pdf",false)) {
+                    experimentMapper.updatePDFPath(usercode + ".pdf", userModel.getId());
+                    return new SysResult(1, "success", "");
+                }else{
+                    return new SysResult(99, "保存pdf异常", null);
+                }
             }catch (Exception ex){
                 return new SysResult(99, "数据转化异常", null);
             }
         }else{
             return new SysResult(99, "请上传用户信息");
         }
+    }
+    private boolean uploadFile(MultipartFile file,String filepath,String filename,boolean isface){
+        try {
+            Map<String, MultipartFile> map = new HashMap<>();
+            map.put("file", file);
+            Map<String,String> map2=new HashMap<>();
+            map2.put("filepath",filepath);
+            map2.put("filename",filename);
+            map2.put("isface",isface?"1":"0");
+            ResponseResult responseResult = com.justh5.experiment.util.HTTPUtil.doFormFilePostReq(imgServer + "savefile", map, map2);
+            if (responseResult.getCode() == 200) {
+                JSONObject values = JSON.parseObject(responseResult.getData().toString());
+                if (values.containsKey("code") && values.getInteger("code") == 1) {
+                    return true;
+                }
+            }
+        }catch (Exception ex){
+            logger.error("上传文件异常：",ex);
+            ex.printStackTrace();
+        }
+        return false;
     }
     private void savePic(InputStream inputStream, String path, String fileName) {
 
@@ -350,107 +453,15 @@ public class AdminController {
         }
     }
 
-    /**
-     * 方法说明：上传文件到远程共享目录
-     * @param localDir         本地临时路径(A:/测试/测试.xls)
-     * @param removeDir        远程共享路径(smb://10.169.2.xx/测试/,特殊路径只能用/)
-     * @param removeIp         远程共享目录IP(10.169.2.xx)
-     * @param removeLoginUser  远程共享目录用户名(user)
-     * @param removeLoginPass  远程共享目录密码(password)
-     * @return
-     * @throws Exception   0成功/-1失败
-     */
-    public static int smbUploading(String localDir, String removeDir,
-                                   String removeIp, String removeLoginUser, String removeLoginPass) throws Exception {
-        NtlmPasswordAuthentication auth = null;
-        OutputStream out = null;
-        int retVal = 0;
-        try {
-            File dir = new File(localDir);
-            if (!dir.exists()) {
-                dir.mkdirs();
-            }
-
-            InetAddress ip = InetAddress.getByName(removeIp);
-            UniAddress address = new UniAddress(ip);
-            // 权限验证
-            auth = new NtlmPasswordAuthentication(removeIp, removeLoginUser, removeLoginPass);
-            SmbSession.logon(address,auth);
-
-            //远程路径判断文件文件路径是否合法
-            SmbFile remoteFile = new SmbFile(removeDir + dir.getName(), auth);
-            remoteFile.connect();
-            if(remoteFile.isDirectory()){
-                retVal = -1;
-            }
-
-            // 向远程共享目录写入文件
-            out = new BufferedOutputStream(new SmbFileOutputStream(remoteFile));
-            out.write(toByteArray(dir));
-        } catch (UnknownHostException e) {
-            retVal = -1;
-            e.printStackTrace();
-        } catch (MalformedURLException e) {
-            retVal = -1;
-            e.printStackTrace();
-        } catch (SmbException e) {
-            retVal = -1;
-            e.printStackTrace();
-        } catch (IOException e) {
-            retVal = -1;
-            e.printStackTrace();
-        } finally{
-            if (out != null) {
-                try {
-                    out.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        }
-
-        return retVal;
-    }
-
-    /**
-     * Mapped File way MappedByteBuffer 可以在处理大文件时，提升性能
-     *
-     * @param file 文件
-     * @return   字节数组
-     * @throws IOException IO异常信息
-     */
-    @SuppressWarnings("resource")
-    public static byte[] toByteArray(File file) throws IOException {
-        FileChannel fc = null;
-        try {
-            fc = new RandomAccessFile(file, "r").getChannel();
-            MappedByteBuffer byteBuffer = fc.map(FileChannel.MapMode.READ_ONLY, 0,
-                    fc.size()).load();
-            byte[] result = new byte[(int) fc.size()];
-            if (byteBuffer.remaining() > 0) {
-                byteBuffer.get(result, 0, byteBuffer.remaining());
-            }
-            return result;
-        } catch (IOException e) {
-            e.printStackTrace();
-            throw e;
-        } finally {
-            try {
-                fc.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
     @RequestMapping(value = "saveExMain")
     @ResponseBody
     public SysResult saveExMain(@RequestBody ExMainEntity exMainEntity) {
         if (exMainEntity != null) {
             exMainEntity.setCreate_time(new Date().getTime());
             if (exMainEntity.getId() != 0) {
-                exMainService.updateExMain(exMainEntity);
+                experimentMapper.updateExMain(exMainEntity);
             } else {
-                exMainService.insertExMain(exMainEntity);
+                experimentMapper.insertExMain(exMainEntity);
             }
         }
         return new SysResult(1, "success", null);
@@ -463,11 +474,101 @@ public class AdminController {
 
         return new ModelAndView("html/admin/userlist");
     }
-
+    @CrossOrigin
+    @RequestMapping("menu")
+    public Object menu(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
+        return new ModelAndView("html/admin/menu");
+    }
     @RequestMapping(value = "getuserlist")
     @ResponseBody
     public SysResult getuserlist(HttpServletRequest request) {
-        return new SysResult(1, "success", adminService.getUserList());
+        UserModel userModel=exMainService.getUserInfoBySession(request);
+        if(userModel==null){
+            return new SysResult(99, "登录失效，请重新登录", null);
+        }
+        return new SysResult(1, "success", experimentMapper.getUserListByTeacherid(userModel.getId()));
+    }
+
+    @CrossOrigin
+    @RequestMapping("teacher")
+    public Object teacher(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
+        UserModel userModel=exMainService.getUserInfoBySession(request);
+        if(userModel==null){
+            return new SysResult(99, "登录失效，请重新登录", null);
+        }
+        return new ModelAndView("html/admin/teacherlist");
+    }
+    @RequestMapping(value = "getteacherlist")
+    @ResponseBody
+    public SysResult getteacherlist(HttpServletRequest request) {
+        UserModel userModel=exMainService.getUserInfoBySession(request);
+        if(userModel==null){
+            return new SysResult(99, "登录失效，请重新登录", null);
+        }
+        return new SysResult(1, "success", experimentMapper.getTeacherList());
+    }
+
+    @CrossOrigin
+    @RequestMapping("addteacher")
+    public Object addteacher(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
+        UserModel userModel=exMainService.getUserInfoBySession(request);
+        if(userModel==null){
+            return new SysResult(99, "登录失效，请重新登录", null);
+        }
+        String idstr = request.getParameter("id");
+        if (!StringUtils.isEmpty(idstr)) {
+            Integer id = Integer.parseInt(idstr);
+            if (id > 0) {
+                UserModel userModel2 = experimentMapper.getUserModelByID(id);
+                if (userModel2 != null) {
+                    modelAndView.addObject("userInfo", JSON.toJSONString(userModel2));
+                }
+            }
+        }
+        modelAndView.setViewName("html/admin/addteacher");
+        return modelAndView;
+    }
+    @RequestMapping(value = "getMenuRoles")
+    @ResponseBody
+    public SysResult getMenuRoles(HttpServletRequest request) {
+        return new SysResult(1, "success", experimentMapper.getMenuRoles());
+    }
+    @CrossOrigin
+    @RequestMapping("delMenuRole")
+    public Object delMenuRole(Integer id) {
+        if (id != null && id > 0) {
+            experimentMapper.delMenuRole(id);
+            return new SysResult(1, "success", null);
+        } else {
+            return new SysResult(99, "参数不正确", null);
+        }
+    }
+    @CrossOrigin
+    @RequestMapping("addmenurole")
+    public Object addmenurole(HttpServletRequest request, ModelAndView modelAndView) {
+        modelAndView.setViewName("html/admin/addmenurole");
+        modelAndView.addObject("menus",experimentMapper.getMenus());
+        return modelAndView;
+    }
+    @RequestMapping(value = "addrolemodel")
+    @ResponseBody
+    public SysResult addrolemodel(Integer roleid,Integer menuid) {
+        try {
+            if(roleid>0&&menuid>0) {
+                MenuRolesEntity menuRolesEntity = experimentMapper.getMenuRoleByMenuidAndRoleid(roleid, menuid);
+                if (menuRolesEntity!=null) {
+                    experimentMapper.updateMenuRole(menuRolesEntity.getId());
+                } else {
+                    experimentMapper.insertMenuRole(roleid,menuid);
+                }
+                return new SysResult(1, "success", null);
+            }else{
+                return new SysResult(99, "参数错误", null);
+            }
+        } catch (Exception ex) {
+            logger.error("addrolemodel error", ex);
+            return new SysResult(99, "add error", null);
+        }
     }
 
     @CrossOrigin
@@ -478,7 +579,7 @@ public class AdminController {
         if (!StringUtils.isEmpty(idstr)) {
             Integer id = Integer.parseInt(idstr);
             if (id > 0) {
-                UserModel userModel = appService.getUserById(id);
+                UserModel userModel = experimentMapper.getUserModelByID(id);
                 if (userModel != null) {
                     modelAndView.addObject("userInfo", JSON.toJSONString(userModel));
                 }
@@ -497,7 +598,7 @@ public class AdminController {
     @RequestMapping("deluser")
     public Object deluser(Integer id) {
         if (id != null && id > 0) {
-            adminService.delUser(id);
+            experimentMapper.delUser(id);
             return new SysResult(1, "success", null);
         } else {
             return new SysResult(99, "参数不正确", null);
@@ -516,7 +617,7 @@ public class AdminController {
             if (!file.isEmpty()) {
                 Map<String, MultipartFile> map = new HashMap<>();
                 map.put("file", file);
-                ResponseResult responseResult = HTTPUtil.doFormFilePostReq(faceSacnServer, map, null);
+                ResponseResult responseResult = com.justh5.experiment.util.HTTPUtil.doFormFilePostReq(imgServer+"compere", map, null);
                 if (responseResult.getCode() == 200) {
                     JSONObject values = JSON.parseObject(responseResult.getData().toString());
                     if (values.containsKey("code") && values.getInteger("code") == 1) {
@@ -536,33 +637,27 @@ public class AdminController {
     }
     @RequestMapping(value = "addusermodel")
     @ResponseBody
-    public SysResult addusermodel(@RequestBody UserModel userModel) {
+    public SysResult addusermodel(HttpServletRequest request,@RequestBody UserModel userModel) {
+        UserModel userModel2=exMainService.getUserInfoBySession(request);
+        if(userModel2==null){
+            return new SysResult(99, "登录失效", null);
+        }
         try {
             userModel.setUsertype(0);
             userModel.setEmail("");
             userModel.setIsdelete(0);
-            if (userModel.getId() > 0) {
-//                UserModel userModel1=experimentMapper.getUserModelByID(userModel.getId());
-//                if(userModel1!=null){
-//                    if(StringUtils.isEmpty(userModel1.getFacepic())||!userModel1.getFacepic().equals(userModel.getFacepic())){
-//                        //注册头像
-//                        //File tempFile = new File("F:\\wlpspace\\experiment\\src\\main\\resources\\static\\pic20181221\\jjyqwfftoszzfywtoi.jpg");
-//                        MultipartFile multipartFile=new MockMultipartFile("file.jpg", new FileInputStream(new File("F:\\wlpspace\\experiment\\src\\main\\resources\\static\\pic20181221\\jjyqwfftoszzfywtoi.jpg")));
-//                        if(!multipartFile.isEmpty()) {
-//                            Map<String, MultipartFile> map = new HashMap<>();
-//                            map.put("file", multipartFile);
-//                            ResponseResult responseResult= HTTPUtil.doFormFilePostReq(faceSacnServer, map, null);
-//                            if(responseResult.getCode()==0){
-//                                //experimentMapper.updateUserEncoding(responseResult.getData().toString(),userModel.getId());
-//                            }else{
-//
-//                            }
-//                        }
-//                    }
-//                }
-                adminService.updateUser(userModel);
+            userModel.setTeacherid(userModel2.getId());
+            if(!StringUtils.isEmpty(userModel.getFacepic()))
+                userModel.setFacepic(userModel.getFacepic().replace("http://pic.justh5.com",""));
+            if (userModel.getId()!=null&&userModel.getId() > 0) {
+                experimentMapper.updateUser(userModel);
             } else {
-                appService.insertUser(userModel);
+                experimentMapper.insertUser(userModel);
+            }
+            if(userModel.getId()==3) {
+                Map<String, Object> map = new HashMap<>();
+                map.put("usercode", userModel.getUsercode());
+                String responseResult = HTTPUtil.httpClientPost(imgServer + "refresh", map, null);
             }
         } catch (Exception ex) {
             logger.error("addusermodel error", ex);
@@ -581,19 +676,27 @@ public class AdminController {
     @RequestMapping(value = "getclasslist")
     @ResponseBody
     public SysResult getclasslist(HttpServletRequest request) {
-
-        return new SysResult(1, "success", adminService.getClassList());
+        UserModel userModel=exMainService.getUserInfoBySession(request);
+        if(userModel==null){
+            return new SysResult(99, "登录失效", null);
+        }
+        return new SysResult(1, "success", experimentMapper.getClassList(userModel.getId()));
     }
 
     @RequestMapping(value = "addclass")
     @ResponseBody
-    public SysResult addclass(@RequestBody ExClassEntity exClassEntity) {
+    public SysResult addclass(HttpServletRequest request,@RequestBody ExClassEntity exClassEntity) {
         try {
+            UserModel userModel=exMainService.getUserInfoBySession(request);
+            if(userModel==null){
+                return new SysResult(99, "登录失效", null);
+            }
             exClassEntity.setCreatetime(new Date().getTime());
+            exClassEntity.setUid(userModel.getId());
             if (exClassEntity.getId() > 0) {
-                adminService.updateClassModel(exClassEntity);
+                experimentMapper.updateClass(exClassEntity);
             } else {
-                adminService.insertClassModel(exClassEntity);
+                experimentMapper.insertClass(exClassEntity);
             }
         } catch (Exception ex) {
             logger.error("addusermodel error", ex);
@@ -604,7 +707,7 @@ public class AdminController {
 
     @RequestMapping(value = "delclass")
     public SysResult delclass(Integer id) {
-        adminService.delClass(id);
+        experimentMapper.delClass(id);
         return new SysResult(1, "", null);
     }
 
@@ -617,7 +720,7 @@ public class AdminController {
     @RequestMapping(value = "/getExAnswerJsonValue")
     @ResponseBody
     public SysResult getExAnswerJsonValue(Integer id) {
-        String answer = exMainService.getExAnswerJsonValue(id);
+        String answer = experimentMapper.getExAnswerJsonValue(id);
         if (!StringUtils.isEmpty(answer)) {
             return new SysResult(1, "success", answer);
         } else {
@@ -634,15 +737,19 @@ public class AdminController {
     @CrossOrigin
     @RequestMapping("delreport")
     public Object delreport(Integer id) {
-        exMainService.deleteReport(id);
+        experimentMapper.delExAnswer(id);
         return new SysResult(1, "success", null);
     }
 
     @RequestMapping(value = "getreportlist")
     @ResponseBody
-    public SysResult getreportlist(Integer status) {
+    public SysResult getreportlist(HttpServletRequest request,Integer status) {
         try {
-            List<ExAnswerEntity> exAnswerEntities = exMainService.getExAnswerEntityList(status);
+            UserModel userModel=exMainService.getUserInfoBySession(request);
+            if(userModel==null){
+                return new SysResult(99, "登录失效", null);
+            }
+            List<ExAnswerEntity> exAnswerEntities = experimentMapper.getExAnswerEntityList(status,userModel.getId());
             return new SysResult(1, "success", exAnswerEntities);
         } catch (Exception ex) {
             return new SysResult(99, "getreportlist error", null);
@@ -658,7 +765,7 @@ public class AdminController {
     @CrossOrigin
     @RequestMapping("deldevice")
     public Object deldevice(Integer id) {
-        exMainService.deleteExStation(id);
+        experimentMapper.delExStation(id);
         return new SysResult(1, "success", null);
     }
 
@@ -666,7 +773,7 @@ public class AdminController {
     @ResponseBody
     public SysResult getdevicelist() {
         try {
-            List<ExStationEntity> exStationEntities = exMainService.getExStationList();
+            List<ExStationEntity> exStationEntities = experimentMapper.getExStationList();
             return new SysResult(1, "success", exStationEntities);
         } catch (Exception ex) {
             return new SysResult(99, "getreportlist error", null);
@@ -681,7 +788,7 @@ public class AdminController {
         if (!StringUtils.isEmpty(idstr)) {
             Integer id = Integer.parseInt(idstr);
             if (id > 0) {
-                ExStationEntity exStationEntity = exMainService.getExStationById(id);
+                ExStationEntity exStationEntity = experimentMapper.getExStationById(id);
                 if (exStationEntity != null) {
                     modelAndView.addObject("exStationEntity", JSON.toJSONString(exStationEntity));
                 }
@@ -692,17 +799,22 @@ public class AdminController {
 
     @RequestMapping(value = "adddevicemodel")
     @ResponseBody
-    public SysResult adddevicemodel(@RequestBody ExStationEntity exStationEntity) {
+    public SysResult adddevicemodel(HttpServletRequest request,HttpServletResponse response,@RequestBody ExStationEntity exStationEntity) {
         try {
+            UserModel userModel=exMainService.getUserInfoBySession(request);
+            if(userModel==null){
+                response.sendRedirect("/admin/index");
+            }
             exStationEntity.setCreate_time(new Date().getTime());
             exStationEntity.setIsdelete(0);
             if (exStationEntity.getId() > 0) {
-                exMainService.updateExStation(exStationEntity);
+                experimentMapper.updateExStation(exStationEntity);
             } else {
-                exMainService.insertExStation(exStationEntity);
+                experimentMapper.insertExStation(exStationEntity);
             }
             return new SysResult(1, "success", null);
         } catch (Exception ex) {
+            ex.printStackTrace();
             return new SysResult(99, "getreportlist error", null);
         }
     }
@@ -721,7 +833,7 @@ public class AdminController {
             Map<String, Object> params = new HashMap<>();
             params.put("getdevname", deviceReq.getIpaddress());
             params.put("gettype", deviceReq.getSelectdevice());
-            String result = HTTPUtil.httpClientGet("http://123.56.255.65:503/getval", params, "utf-8");
+            String result = HTTPUtil.httpClientGet(nodeServer+"getval", params, "utf-8");
             logger.info("获取设备信息：dev " + deviceReq.getIpaddress() + "  type" + deviceReq.getSelectdevice() + "  " + result);
             return new SysResult(1, "success", result);
         } catch (Exception ex) {
@@ -756,6 +868,7 @@ public class AdminController {
     @RequestMapping(value = "scanAddUser")
     @ResponseBody
     public SysResult scanAddUser(@RequestBody UserModel userModel) {
+
         try {
             userModel.setUsertype(0);
             userModel.setEmail("");
@@ -763,7 +876,7 @@ public class AdminController {
             userModel.setLoginpwd("");
             userModel.setLoginname("");
             userModel.setUsersign("");
-            UserModel userModel1 = appService.getUserByUserCode(userModel.getUsercode());
+            UserModel userModel1 = experimentMapper.getUserModelByCode(userModel.getUsercode());
             if (userModel1 != null) {
                 if (userModel1.getUsertype().equals(3)) {
                     userModel1.setUsername(userModel.getUsername());
@@ -771,13 +884,13 @@ public class AdminController {
                     userModel1.setFacepic(userModel.getFacepic());
                     userModel1.setUsertype(0);
                     userModel1.setClassid(userModel.getClassid());
-                    adminService.updateUser(userModel1);
+                    experimentMapper.updateUser(userModel1);
                 } else {
                     return new SysResult(99, "您的学号已经注册", null);
                 }
             } else {
                 userModel.setUsertype(2);
-                appService.insertUser(userModel);
+                experimentMapper.insertUser(userModel);
                 return new SysResult(1, "注册成功，您未报本实验课，请联系老师", null);
             }
         } catch (Exception ex) {
@@ -787,38 +900,21 @@ public class AdminController {
         return new SysResult(1, "注册成功", null);
     }
 
-    @RequestMapping(value = "downloadImg")
-    @ResponseBody
-    public SysResult downloadImg(String server_id) {
-        try {
-            wxMpService = weChatMpConfig.wxMpService();
-            String imgname = CommonHelper.getRandomString(10);
-            String returnpath = new SimpleDateFormat("yyyyMMdd/").format(new Date());
-            String picpath = urlpath + returnpath;
-            InputStream inputStream = wxMpService.getMaterialService().materialImageOrVoiceDownload(server_id);
-            savePic(inputStream, picpath, imgname);
-            return new SysResult(1, "success", "/experiment/" + returnpath + imgname + ".jpg");
-        } catch (Exception ex) {
-            logger.error("get wx server img error", ex);
-            return new SysResult(99, "add error", null);
-        }
-    }
-
-    @CrossOrigin
-    @RequestMapping("scan")
-    public Object scan(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
-        wxMpService = weChatMpConfig.wxMpService();
-        modelAndView.setViewName("html/admin/scan");
-        try {
-            String url = "http://experiment.justh5.com/admin/scan";
-            modelAndView.addObject("sign", getSign(url));
-            List<ExClassEntity> exClassEntities = adminService.getClassList();
-            modelAndView.addObject("classes", JSON.toJSONString(exClassEntities));
-        } catch (Exception ex) {
-            ex.printStackTrace();
-        }
-        return modelAndView;
-    }
+//    @CrossOrigin
+////    @RequestMapping("scan")
+////    public Object scan(HttpServletRequest request, HttpServletResponse response, ModelAndView modelAndView) {
+////        wxMpService = weChatMpConfig.wxMpService();
+////        modelAndView.setViewName("html/admin/scan");
+////        try {
+////            String url = "http://experiment.justh5.com/admin/scan";
+////            modelAndView.addObject("sign", getSign(url));
+////            List<ExClassEntity> exClassEntities = experimentMapper.getClassList();
+////            modelAndView.addObject("classes", JSON.toJSONString(exClassEntities));
+////        } catch (Exception ex) {
+////            ex.printStackTrace();
+////        }
+////        return modelAndView;
+////    }
 
     private String getSign(String url) {
         try {
@@ -835,53 +931,104 @@ public class AdminController {
     @CrossOrigin
     @RequestMapping("getosc")
     public Object getosc(@RequestBody OSCResp oscResp) {
+        Map<String,Object> map=new HashMap<>();
+        map.put("userid","1");
+        map.put("oSCCOde",oscResp.getInstruct());
+        map.put("serialid",oscResp.getDeviceName());
+        map.put("type",oscResp.getType());
+        map.put("transferType",oscResp.getTransferType());
+        String responseResult =   HTTPUtil.httpClientPost(deviceServer+"admin/getDeviceData",map,null);
+        if (!StringUtils.isEmpty(responseResult)) {
+            JSONObject values = JSON.parseObject(responseResult);
+            if (values.containsKey("code") && values.getInteger("code") == 1) {
+                return new SysResult(99, "", values.getString("data"));
+            }
+            return new SysResult(99, values.getString("msg"), null);
+        }
+        return new SysResult(99, "异常", null);
+    }
+
+    @CrossOrigin
+    @RequestMapping("getDeviceData")
+    public Object getDeviceData(String userid,String oSCCOde,String serialid,String type,String transferType) {
         try {
-            if (socketServer.channelModel != null && socketServer.channelModel.getSocketChannel() != null && socketServer.channelModel.getSocketChannel().isConnected()) {
-                ByteBuffer sBuffer = ByteBuffer.allocate(1024);
-                String str = JSON.toJSONString(oscResp);
-                logger.info("发送数据：" + str);
-                sBuffer = ByteBuffer.allocate(str.getBytes("UTF-8").length);
-                sBuffer.put(str.getBytes("UTF-8"));
-                sBuffer.flip();
-                logger.info("write buffer");
-                if(socketServer.channelModel.getOscRespModelList()!=null&&socketServer.channelModel.getOscRespModelList().size()>0){
-                    for(OSCRespModel oscRespModel:socketServer.channelModel.getOscRespModelList()){
-                        if(!StringUtils.isEmpty(oscRespModel.getDeviceName())&&!StringUtils.isEmpty(oscResp.getDeviceName())&& oscRespModel.getDeviceName().toLowerCase().equals(oscResp.getDeviceName().toLowerCase())){
-                            oscRespModel.setResp("");
+            if(StringUtils.isEmpty(userid)||StringUtils.isEmpty(oSCCOde)||StringUtils.isEmpty(serialid)||StringUtils.isEmpty(type)||StringUtils.isEmpty(transferType)){
+                return new SysResult(99, "参数不能为空 userid,oSCCOde,serialid,type,transferType", null);
+            }
+            OSCReq oscReq=new OSCReq();
+            oscReq.setoSCCOde(oSCCOde);
+            oscReq.setSerialid(serialid);
+            oscReq.setType(type);
+            oscReq.setTransferType(transferType);
+            oscReq.setUserid(userid);
+            //HttpClientUtils.doPost("");
+            if (!StringUtils.isEmpty(oscReq.getUserid()) && !StringUtils.isEmpty(oscReq.getSerialid())) {
+                if (socketServer.channelModel != null && socketServer.channelModel.getSocketChannel() != null && socketServer.channelModel.getSocketChannel().isConnected()) {
+                    OSCResp oscResp = new OSCResp();
+                    oscResp.setType(oscReq.getType());
+                    ExStationEntity exStationEntity = experimentMapper.getExStationBySerialId(oscReq.getSerialid());
+                    if (exStationEntity != null && !StringUtils.isEmpty(exStationEntity.getEx_osc())) {
+                        oscResp.setDeviceName(exStationEntity.getEx_osc());
+                        oscResp.setInstruct(oscReq.getoSCCOde());
+                        ByteBuffer sBuffer = ByteBuffer.allocate(1024);
+                        String str = JSON.toJSONString(oscResp);
+                        logger.info("发送数据：" + str);
+                        sBuffer = ByteBuffer.allocate(str.getBytes("UTF-8").length);
+                        sBuffer.put(str.getBytes("UTF-8"));
+                        sBuffer.flip();
+                        try {
+                            if (socketServer.channelModel.getSocketChannel().isConnected()) {
+                                logger.info("write buffer");
+                                //socketServer.channelModel.setResp("");
+                                if(socketServer.channelModel.getOscRespModelList()!=null&&socketServer.channelModel.getOscRespModelList().size()>0){
+                                    for(OSCRespModel oscRespModel:socketServer.channelModel.getOscRespModelList()){
+                                        if(!StringUtils.isEmpty(oscRespModel.getDeviceName())&&!StringUtils.isEmpty(oscResp.getDeviceName())&& oscRespModel.getDeviceName().toLowerCase().equals(oscResp.getDeviceName().toLowerCase())){
+                                            oscRespModel.setResp("");
+                                        }
+                                    }}
+                                socketServer.channelModel.getSocketChannel().write(sBuffer);
+                            }
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                            System.out.println(ex.getMessage());
                         }
-                    }
-                }
-                socketServer.channelModel.getSocketChannel().write(sBuffer);
-                int num=20;
-                if(oscResp.getType().equals("write")){
-                    num=30;//写指令超时时间
-                }
-                for (int i = 0; i < num; i++) {
-                    Thread.sleep(300);
-                    if (socketServer.channelModel.getOscRespModelList() != null && socketServer.channelModel.getOscRespModelList().size() > 0) {
-                        for (OSCRespModel oscRespModel : socketServer.channelModel.getOscRespModelList()) {
-                            if (!StringUtils.isEmpty(oscRespModel.getDeviceName()) && !StringUtils.isEmpty(oscResp.getDeviceName()) && oscRespModel.getDeviceName().toLowerCase().equals(oscResp.getDeviceName().toLowerCase())) {
-                                if (!StringUtils.isEmpty(oscRespModel.getResp())) {
-                                    if (oscRespModel.getResp().contains("error")) {
-                                        return new SysResult(1, "", oscRespModel.getResp());
+                        int num=20;
+                        if(oscResp.getType().equals("write")){
+                            num=30;//写指令超时时间
+                        }
+                        for (int i = 0; i < num; i++) {
+                            Thread.sleep(300);
+                            if (socketServer.channelModel.getOscRespModelList() != null && socketServer.channelModel.getOscRespModelList().size() > 0) {
+                                for (OSCRespModel oscRespModel : socketServer.channelModel.getOscRespModelList()) {
+                                    if (!StringUtils.isEmpty(oscRespModel.getDeviceName()) && !StringUtils.isEmpty(oscResp.getDeviceName()) && oscRespModel.getDeviceName().toLowerCase().equals(oscResp.getDeviceName().toLowerCase())) {
+                                        if (!StringUtils.isEmpty(oscRespModel.getResp())) {
+                                            if (oscRespModel.getResp().contains("error")) {
+                                                return new SysResult(1, "", oscRespModel.getResp());
+                                            }
+                                            String data = exMainService.GetTransferData(oscReq.getTransferType(), oscRespModel.getResp());
+                                            logger.info("获取数据：" + oscRespModel.getResp() + "转换后：" + data);
+                                            return new SysResult(1, "", data);
+                                        }
                                     }
-                                    String data = exMainService.GetTransferData(oscResp.getTransferType(), oscRespModel.getResp());
-                                    logger.info("获取数据：" + oscRespModel.getResp() + "转换后：" + data);
-                                    return new SysResult(1, "", "原始数据：" + oscRespModel.getResp() + " 转换后：" + data);
                                 }
                             }
                         }
+                        return new SysResult(99, "获取数据超时", null);
+                    } else {
+                        return new SysResult(99, "未设置设备信息", null);
                     }
+                } else {
+                    return new SysResult(99, "未连接设备", null);
                 }
-                return new SysResult(99, "获取数据超时", null);
+//                return new SysResult(1, "success", null);
             } else {
-                return new SysResult(99, "未连接设备", null);
+                return new SysResult(99, "参数不能为空", null);
             }
         } catch (Exception ex) {
-            ex.printStackTrace();
-            System.out.println(ex.getMessage());
+            logger.error("获取示波器数据异常", ex);
+            System.out.println(ex);
+            return new SysResult(99, "error", null);
         }
-        return new SysResult(99, "异常", null);
     }
 
     @CrossOrigin
@@ -892,9 +1039,9 @@ public class AdminController {
         List<RecodeModel> recodeModels=new ArrayList<>();
         if (id != null) {
             Gson gson=new Gson();
-            ExAnswerEntity answer= exMainService.getExAnswerById(Integer.parseInt(id));
+            ExAnswerEntity answer= experimentMapper.getExAnswerById(Integer.parseInt(id));
             if(answer!=null){
-                ExMainEntity exMainEntity= exMainService.getExMainById(answer.getMain_id());
+                ExMainEntity exMainEntity= experimentMapper.getExMainById(answer.getMain_id());
                 if(exMainEntity!=null){
                     RecodeModel recode=new RecodeModel();
                     recode.setId(0);
@@ -1023,104 +1170,6 @@ public class AdminController {
         }
         return answerModels;
     }
-    private void getRecodeModelRef(Map<String,Object> mapEx,Object obj,String key,List<RecodeModel> recodeModels){
-        RecodeModel recodeModel=new RecodeModel();
-        for(String key2:mapEx.keySet()){
-            if(key.equals(key2)){
-                if (obj instanceof Integer) {
-                    int value = ((Integer) obj).intValue();
-                } else if (obj instanceof String) {
-                    String s = (String) obj;
-
-
-                } else if (obj instanceof Double) {
-                    double d = ((Double) obj).doubleValue();
-                } else if (obj instanceof Float) {
-                    float f = ((Float) obj).floatValue();
-                } else if (obj instanceof Long) {
-                    long l = ((Long) obj).longValue();
-                } else if (obj instanceof Boolean) {
-                    boolean b = ((Boolean) obj).booleanValue();
-                } else if (obj instanceof Date) {
-                    Date d = (Date) obj;
-                }
-            }
-        }
-        return ;
-    }
-
-
-
-
-    @CrossOrigin
-    @RequestMapping("questionbasetype")
-    public Object questionbasetype(HttpServletRequest request,ModelAndView modelAndView) {
-        modelAndView.setViewName("html/admin/questionbasetype");
-        String idstr= request.getParameter("id");
-        if(!StringUtils.isEmpty(idstr)) {
-            Integer id=Integer.parseInt(idstr);
-            List<ExQuestionBaseTypeEntity> exQuestionBaseTypeEntityList = experimentMapper.getExQuestionBaseTypeList(id);
-            if (exQuestionBaseTypeEntityList != null) {
-                modelAndView.addObject("qlist", exQuestionBaseTypeEntityList);
-            }
-        }
-        return modelAndView;
-    }
-
-
-
-    @CrossOrigin
-    @RequestMapping("addquestionbasetype")
-    public Object addquestionbasetype(@RequestBody BaseTypeReq baseTypeReq) {
-        if(baseTypeReq.getBaseid()!=null&&baseTypeReq.getBaseid()>0&&!StringUtils.isEmpty(baseTypeReq.getTypename())&&!StringUtils.isEmpty(baseTypeReq.getTypetitle())){
-            ExMainEntity exMainEntity=exMainService.getExMainById(baseTypeReq.getBaseid());
-            if(exMainEntity!=null&&exMainEntity.getId()>0){
-                ExQuestionBaseTypeEntity exQuestionBaseTypeEntity=new ExQuestionBaseTypeEntity();
-                exQuestionBaseTypeEntity.setMain_id(baseTypeReq.getBaseid());
-                exQuestionBaseTypeEntity.setName(baseTypeReq.getTypename());
-                exQuestionBaseTypeEntity.setTitle(baseTypeReq.getTypetitle());
-                exQuestionBaseTypeEntity.setType(baseTypeReq.getType());
-                exQuestionBaseTypeEntity.setValue(baseTypeReq.getVal());
-                if(baseTypeReq.getId()!=null&&baseTypeReq.getId()>0){
-                    exQuestionBaseTypeEntity.setId(baseTypeReq.getId());
-                    experimentMapper.updateExQuestionBaseType(exQuestionBaseTypeEntity);
-                }else{
-                    experimentMapper.insertExQuestionBaseType(exQuestionBaseTypeEntity);
-                }
-                return new SysResult(1, "", null);
-            }
-        }else{
-            return new SysResult(99, "数据不能为空,id大于0", null);
-        }
-        return new SysResult(99, "异常", null);
-    }
-    @CrossOrigin
-    @RequestMapping("delquestionbasetype")
-    public Object delquestionbasetype(Integer id) {
-        if(id!=null&&id>0){
-            experimentMapper.delExQuestionBaseType(id);
-            return new SysResult(1, "", null);
-        }
-        return new SysResult(99, "异常", null);
-    }
-
-    @CrossOrigin
-    @RequestMapping("questionlist")
-    public Object questionlist(HttpServletRequest request,ModelAndView modelAndView) {
-        modelAndView.setViewName("html/admin/questionlist");
-        String idstr= request.getParameter("id");
-        if(!StringUtils.isEmpty(idstr)) {
-            Integer id=Integer.parseInt(idstr);
-            List<ExQuestionEntity> exQuestionEntityList=experimentMapper.getExQuestionList(id);
-            List<ExQuestionTypeEntity> exQuestionTypeEntityList=experimentMapper.getExQuestionTypeList();
-            if (exQuestionEntityList != null&&exQuestionEntityList!=null) {
-                modelAndView.addObject("qlist", exQuestionEntityList);
-                modelAndView.addObject("qtlist", exQuestionTypeEntityList);
-            }
-        }
-        return modelAndView;
-    }
-
     @CrossOrigin
     @RequestMapping("addquestion")
     public Object addquestion(@RequestBody ExQuestionEntity exQuestionEntity) {
@@ -1148,10 +1197,14 @@ public class AdminController {
     @RequestMapping("output")
     public void output(HttpServletRequest request, HttpServletResponse response) {
         try {
+            UserModel userModel2=exMainService.getUserInfoBySession(request);
+            if(userModel2==null){
+                response.sendRedirect("/admin/index");
+            }
             List<Map<String,Object>> maps = new ArrayList<>();
-            List<UserModel> userModels=experimentMapper.getUserList();
-            List<ExAnswerEntity> exAnswerEntities=experimentMapper.getExAnswerEntityList(0);
-            List<ExAnswerEntity> exAnswerEntities1=experimentMapper.getExAnswerEntityList(1);
+            List<UserModel> userModels=experimentMapper.getUserListByRoleid(3);
+            List<ExAnswerEntity> exAnswerEntities=experimentMapper.getExAnswerEntityList(0,userModel2.getId());
+            List<ExAnswerEntity> exAnswerEntities1=experimentMapper.getExAnswerEntityList(1,userModel2.getId());
             exAnswerEntities.addAll(exAnswerEntities1);
             for(UserModel userModel:userModels){
                 Map<String, Object> map = new LinkedHashMap<>();
@@ -1174,6 +1227,9 @@ public class AdminController {
                                 score4=exAnswerEntity.getScore();
                                 break;
                             case 4:
+                                //score5=exAnswerEntity.getScore();
+                                break;
+                            case 5:
                                 score5=exAnswerEntity.getScore();
                                 break;
                         }
@@ -1248,4 +1304,33 @@ public class AdminController {
             br.close();
         }
     }
+
+
+    @RequestMapping(value = "updateuserpic")
+    @ResponseBody
+    public SysResult updateuserpic(@RequestBody UserModel userModel) {
+        try {
+            userModel.setUsertype(0);
+            userModel.setEmail("");
+            userModel.setIsdelete(0);
+            if (!StringUtils.isEmpty(userModel.getUsercode())) {
+                UserModel userModel1=experimentMapper.getUserModelByCode(userModel.getUsercode());
+                if(userModel1!=null){
+                    if(!StringUtils.isEmpty(userModel.getFacepic())){
+                        experimentMapper.updateUserPic(userModel);
+                        return new SysResult(1, "success", null);
+                    }else{
+                        return new SysResult(99, "图片不能为空", null);
+                    }
+                }
+            } else {
+                return new SysResult(99, "未找到用户code", null);
+            }
+        } catch (Exception ex) {
+            logger.error("update user pic error", ex);
+            return new SysResult(99, "update error", null);
+        }
+        return new SysResult(1, "success", null);
+    }
+
 }

@@ -8,6 +8,6 @@ public class StartServer {
     @Autowired
     SocketServer socketServer;
     public void StartNow(){
-        socketServer.startSocketServer(8022);
+        socketServer.startSocketServer(8023);
     }
 }
